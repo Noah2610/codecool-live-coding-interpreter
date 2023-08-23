@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        /* Language and Environment */
+        "target": "es2016",
+
+        /* Modules */
+        "module": "NodeNext",
+
+        /* Emit */
+        "outDir": "dist/",
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+
+        /* Interop Constraints */
+        "esModuleInterop": true,
+        "preserveSymlinks": true,
+        "forceConsistentCasingInFileNames": true,
+
+        /* Type Checking */
+        "strict": true,
+        "noImplicitAny": true,
+        "noUncheckedIndexedAccess": true,
+
+        /* Completeness */
+        "skipLibCheck": true
+    },
+    "include": ["src/**/*.ts"]
+}
