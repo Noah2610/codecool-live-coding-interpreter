@@ -14,6 +14,11 @@ export function parseExpression(input: string): [Expression | null, string] {
         return [{ type: "boolean", value: bool[0] }, bool[1]];
     }
 
+    const str = parseStringExpression(input);
+    if (str[0] !== null) {
+        return [{ type: "string", value: str[0] }, str[1]];
+    }
+
     return [null, input];
 }
 
@@ -39,15 +44,52 @@ function parseNumberExpression(input: string): [number | null, string] {
 }
 
 function parseBooleanExpression(input: string): [boolean | null, string] {
-    var [trueToken, rest] = extractToken(input, "true");
+    var [trueToken, rest] = extractToken(input, "wahr");
     if (trueToken) {
         return [true, rest];
     }
-    var [falseToken, rest] = extractToken(rest, "false");
+    var [falseToken, rest] = extractToken(rest, "falsch");
     if (falseToken) {
         return [false, rest];
     }
     return [null, input];
+}
+
+function parseStringExpression(input: string): [string | null, string] {
+    const [quote, rest] = extractToken(input, '"');
+    if (!quote) {
+        return [null, input];
+    }
+
+
+    let str = "";
+    let isEscaped = false;
+    let didCloseString = false;
+    let backslashesCount = 0;
+
+    for (const chr of rest) {
+        if (!isEscaped && chr === "\\") {
+            backslashesCount++;
+            isEscaped = true;
+            continue;
+        }
+
+        if (!isEscaped && chr === '"') {
+            didCloseString = true;
+            break;
+        }
+        str += chr;
+
+        if (isEscaped) {
+            isEscaped = false;
+        }
+    }
+
+    if (!didCloseString) {
+        return [null, input];
+    }
+
+    return [str, input.slice(str.length + 2 + backslashesCount)];
 }
 
 function extractToken(input: string, token: string): [string | null, string] {

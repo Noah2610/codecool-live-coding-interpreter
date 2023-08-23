@@ -7,9 +7,24 @@ describe("parser", () => {
     });
 
     it("parses boolean expression", () => {
-        const parsedTrue = parseExpression("true");
+        const parsedTrue = parseExpression("wahr");
         expect(parsedTrue).toEqual([{ type: "boolean", value: true }, ""]);
-        const parsedFalse = parseExpression("false");
+        const parsedFalse = parseExpression("falsch");
         expect(parsedFalse).toEqual([{ type: "boolean", value: false }, ""]);
+    });
+
+    it("parses string expression", () => {
+        const parsed = parseExpression('"Hallo Welt."');
+        expect(parsed).toEqual([{ type: "string", value: "Hallo Welt." }, ""]);
+    });
+
+    it('parses string with escaped quote (\\")', () => {
+        const parsed = parseExpression('"Hallo \\"Welt\\"."');
+        expect(parsed).toEqual([{ type: "string", value: 'Hallo "Welt".' }, ""]);
+    });
+
+    it('parses string with escaped backslash (\\\\)', () => {
+        const parsed = parseExpression('"Hallo \\\\Welt."');
+        expect(parsed).toEqual([{ type: "string", value: "Hallo \\Welt." }, ""]);
     });
 });
