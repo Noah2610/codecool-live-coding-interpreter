@@ -41,7 +41,7 @@ das resultat ist
 das resultat ist
     die Differenz von 10 und 5!
 das resultat ist
-    das Produkt von 2 und 3!
+    das Produkt aus 2 und 3!
 das resultat ist
     der Quotient von 9 und 3!
 das resultat ist
@@ -51,6 +51,7 @@ das resultat ist
 
 # LOOP
 schau durch die VARIABLE-NAME und mach!
+stopp jetzt
 
 # COMMENT
 ignorier das COMMENT
