@@ -24,23 +24,8 @@ export function parseExpression(input: string): [Expression | null, string] {
 
 function parseNumberExpression(input: string): [number | null, string] {
     const DIGITS = new Set([..."0123456789"]);
-
-    let numS = "";
-
-    for (const chr of input) {
-        if (DIGITS.has(chr)) {
-            numS += chr;
-        } else {
-            break;
-        }
-    }
-
-    if (numS.length === 0) {
-        return [null, input];
-    }
-
-    const rest = input.slice(numS.length);
-    return [parseInt(numS), rest];
+    const [numS, rest] = extractWhile1(input, (chr) => DIGITS.has(chr));
+    return [numS === null ? null : parseInt(numS), rest];
 }
 
 function parseBooleanExpression(input: string): [boolean | null, string] {
@@ -56,40 +41,37 @@ function parseBooleanExpression(input: string): [boolean | null, string] {
 }
 
 function parseStringExpression(input: string): [string | null, string] {
-    const [quote, rest] = extractToken(input, '"');
+    var [quote, rest] = extractToken(input, '"');
     if (!quote) {
         return [null, input];
     }
 
-
-    let str = "";
     let isEscaped = false;
     let didCloseString = false;
-    let backslashesCount = 0;
 
-    for (const chr of rest) {
+    var [str, rest] = extractWhile(rest, (chr) => {
         if (!isEscaped && chr === "\\") {
-            backslashesCount++;
             isEscaped = true;
-            continue;
+            return "skip";
         }
 
         if (!isEscaped && chr === '"') {
             didCloseString = true;
-            break;
+            return false;
         }
-        str += chr;
 
         if (isEscaped) {
             isEscaped = false;
         }
-    }
+
+        return true;
+    });
 
     if (!didCloseString) {
         return [null, input];
     }
 
-    return [str, input.slice(str.length + 2 + backslashesCount)];
+    return [str, rest.slice(1)];
 }
 
 function extractToken(input: string, token: string): [string | null, string] {
@@ -98,4 +80,39 @@ function extractToken(input: string, token: string): [string | null, string] {
         return [slice, input.slice(slice.length)];
     }
     return [null, input];
+}
+
+function extractWhile(
+    input: string,
+    predicate: (chr: string, i: number) => boolean | "skip",
+): [string, string] {
+    let result = "";
+    let skipCount = 0;
+
+    for (let i = 0; i < input.length; i++) {
+        const chr = input[i]!;
+        const predicateResult = predicate(chr, i);
+        if (predicateResult === false) {
+            break;
+        }
+        if (predicateResult === "skip") {
+            skipCount++;
+            continue;
+        }
+        result += chr;
+    }
+
+    const rest = input.slice(result.length + skipCount);
+    return [result, rest];
+}
+
+function extractWhile1(
+    input: string,
+    predicate: (chr: string, i: number) => boolean | "skip",
+): [string | null, string] {
+    const first = input[0];
+    if (first === undefined || predicate(first, 0) === false) {
+        return [null, input];
+    }
+    return extractWhile(input, predicate);
 }

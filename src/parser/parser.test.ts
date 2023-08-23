@@ -6,6 +6,11 @@ describe("parser", () => {
         expect(parsed).toEqual([{ type: "number", value: 123 }, ""]);
     });
 
+    it("can't empty number expression", () => {
+        const parsed = parseExpression("");
+        expect(parsed).toEqual([null, ""]);
+    });
+
     it("parses boolean expression", () => {
         const parsedTrue = parseExpression("wahr");
         expect(parsedTrue).toEqual([{ type: "boolean", value: true }, ""]);
