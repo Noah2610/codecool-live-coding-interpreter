@@ -1,4 +1,4 @@
-# `EudaScript` interpreter
+# `OidaScript` interpreter
 Creating our own programming language parser and runner!  
 See [DESIGN.md](./DESIGN.md) for our language syntax design.
 
