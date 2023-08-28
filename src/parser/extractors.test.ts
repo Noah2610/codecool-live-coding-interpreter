@@ -1,4 +1,10 @@
-import { extractToken, extractWhile, extractWhile1 } from "./extractors";
+import {
+    extractToken,
+    extractWhile,
+    extractWhile1,
+    extractWhitespace,
+    extractWhitespace1,
+} from "./extractors";
 
 describe("extractors", () => {
     it("extracts token 'hello'", () => {
@@ -22,5 +28,17 @@ describe("extractors", () => {
     it("can't extract at least one lowercase letter (extractWhile1)", () => {
         const extracted = extractWhile1("Hello", (c) => c === c.toLowerCase());
         expect(extracted).toEqual([null, "Hello"]);
+    });
+
+    it("extracts whitespace", () => {
+        expect(extractWhitespace("foo")).toEqual(["", "foo"]);
+        expect(extractWhitespace("  foo")).toEqual(["  ", "foo"]);
+        expect(extractWhitespace("\n\tfoo")).toEqual(["\n\t", "foo"]);
+        expect(extractWhitespace("\r\n\tfoo")).toEqual(["\r\n\t", "foo"]);
+    });
+
+    it("extracts at least one whitespace (extractWhitespace1)", () => {
+        expect(extractWhitespace1("foo")).toEqual([null, "foo"]);
+        expect(extractWhitespace1("  foo")).toEqual(["  ", "foo"]);
     });
 });

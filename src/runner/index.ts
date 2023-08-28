@@ -12,6 +12,9 @@ export function runExpression(expression: Expression) {
         case "string": {
             return expression.value;
         }
+        case "operation": {
+            throw new Error("[unimplemented] run operation");
+        }
         default: {
             expectNever(expression);
         }
