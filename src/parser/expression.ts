@@ -1,7 +1,13 @@
+import { extractToken, extractWhile, extractWhile1 } from "./extractors";
+
+export type NumberExpression = { type: "number"; value: number };
+export type BooleanExpression = { type: "boolean"; value: boolean };
+export type StringExpression = { type: "string"; value: string };
+
 export type Expression =
-    | { type: "number"; value: number }
-    | { type: "boolean"; value: boolean }
-    | { type: "string"; value: string };
+    | NumberExpression
+    | BooleanExpression
+    | StringExpression;
 
 export function parseExpression(input: string): [Expression | null, string] {
     const num = parseNumberExpression(input);
@@ -72,47 +78,4 @@ function parseStringExpression(input: string): [string | null, string] {
     }
 
     return [str, rest.slice(1)];
-}
-
-function extractToken(input: string, token: string): [string | null, string] {
-    const slice = input.slice(0, token.length);
-    if (slice === token) {
-        return [slice, input.slice(slice.length)];
-    }
-    return [null, input];
-}
-
-function extractWhile(
-    input: string,
-    predicate: (chr: string, i: number) => boolean | "skip",
-): [string, string] {
-    let result = "";
-    let skipCount = 0;
-
-    for (let i = 0; i < input.length; i++) {
-        const chr = input[i]!;
-        const predicateResult = predicate(chr, i);
-        if (predicateResult === false) {
-            break;
-        }
-        if (predicateResult === "skip") {
-            skipCount++;
-            continue;
-        }
-        result += chr;
-    }
-
-    const rest = input.slice(result.length + skipCount);
-    return [result, rest];
-}
-
-function extractWhile1(
-    input: string,
-    predicate: (chr: string, i: number) => boolean | "skip",
-): [string | null, string] {
-    const first = input[0];
-    if (first === undefined || predicate(first, 0) === false) {
-        return [null, input];
-    }
-    return extractWhile(input, predicate);
 }

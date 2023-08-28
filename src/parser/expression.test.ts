@@ -1,6 +1,6 @@
-import { parseExpression } from "./index";
+import { parseExpression } from "./expression";
 
-describe("parser", () => {
+describe("parse expressions", () => {
     it("parses number expression", () => {
         const parsed = parseExpression("123");
         expect(parsed).toEqual([{ type: "number", value: 123 }, ""]);

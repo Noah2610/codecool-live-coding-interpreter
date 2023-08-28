@@ -1,5 +1,5 @@
 import { expectNever } from "ts-expect";
-import { Expression } from "../parser";
+import { Expression } from "../parser/expression";
 
 export function runExpression(expression: Expression) {
     switch (expression.type) {
