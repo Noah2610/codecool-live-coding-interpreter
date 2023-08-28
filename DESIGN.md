@@ -5,6 +5,11 @@ wahr!
 falsch!
 "string value"!
 
+# NUMBER with decimal point using "," because german
+1,23
+# NUMBER with decorative delimiter
+100.000.000
+
 # VARIABLE-DEFINITION
 das VARIABLE-NAME ist VALUE!
 der VARIABLE-NAME ist VALUE!
@@ -35,8 +40,10 @@ nicht 10 größer als 5
 die aussage ist 10 gleich 5
 
 # OPERATION
-summe von 10 und 20!
-das resultat ist
+sie Summe von die Differenz von 10 und 20 und 30
+
+die Summe von 10 und 20!
+das Resultat ist
     die Summe von 10 und 5!
 das resultat ist
     die Differenz von 10 und 5!
@@ -67,5 +74,5 @@ folgende FUNCTION-NAME kriegt PARAM und PARAM beginnt hier
 endet hier
 
 # FUNCTION-CALL
-mach FUNCTION-NAME mit VALUE und VALUE und VALUE!
+mach FUNCTION-NAME mit VALUE, VALUE und VALUE!
 ```
