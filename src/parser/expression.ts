@@ -7,6 +7,8 @@ import {
     extractWhitespace1,
 } from "./extractors";
 
+export type PrimitiveExpression = NumberExpression | BooleanExpression | StringExpression;
+
 export type NumberExpression = { type: "number"; value: number };
 export type BooleanExpression = { type: "boolean"; value: boolean };
 export type StringExpression = { type: "string"; value: string };
