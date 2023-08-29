@@ -9,6 +9,22 @@ export function extractToken(
     return [null, input];
 }
 
+export function extractOneOfToken(
+    input: string,
+    tokens: string[],
+): [string | null, string] {
+    var rest = input;
+
+    for (const token of tokens) {
+        var [extracted, rest] = extractToken(rest, token);
+        if (extracted !== null) {
+            return [extracted, rest];
+        }
+    }
+
+    return [null, input];
+}
+
 export function extractTokens(
     input: string,
     tokens: string[],
