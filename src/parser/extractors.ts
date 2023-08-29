@@ -9,12 +9,15 @@ export function extractToken(
     return [null, input];
 }
 
-export function extractTokens(input: string, tokens: string[]): [string | null, string] {
+export function extractTokens(
+    input: string,
+    tokens: string[],
+): [string | null, string] {
     let extracted = "";
     var rest = input;
 
     for (const token of tokens) {
-        var [tk, rest] = extractToken(rest, token)
+        var [tk, rest] = extractToken(rest, token);
         if (tk === null) return [null, input];
         extracted += tk;
         var [ws, rest] = extractWhitespace1(rest);
@@ -33,7 +36,9 @@ export function extractWhitespace1(input: string): [string | null, string] {
     return extractWhile1(input, (chr) => chr.trim().length === 0);
 }
 
-export function extractOperator(input: string): ["+" | "-" | "*" | "/" | null, string] {
+export function extractOperator(
+    input: string,
+): ["+" | "-" | "*" | "/" | null, string] {
     var [plus, rest] = extractTokens(input, ["die", "Summe", "von"]);
     if (plus !== null) {
         return ["+", rest];
@@ -51,6 +56,31 @@ export function extractOperator(input: string): ["+" | "-" | "*" | "/" | null, s
         return ["/", rest];
     }
     return [null, input];
+}
+
+export function extractNumber(input: string): [number | null, string] {
+    const DIGITS = new Set([..."0123456789"]);
+
+    let wasDelimiter = false;
+
+    const [numS, rest] = extractWhile1(input, (chr, i) => {
+        if (chr === ".") {
+            if (i === 0 || wasDelimiter) {
+                return false;
+            }
+
+            wasDelimiter = true;
+            return "skip";
+        }
+        wasDelimiter = false;
+        return DIGITS.has(chr);
+    });
+
+    if (numS === null || wasDelimiter) {
+        return [null, input];
+    }
+
+    return [parseInt(numS), rest];
 }
 
 export function extractWhile(

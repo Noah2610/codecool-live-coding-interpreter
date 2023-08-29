@@ -19,6 +19,12 @@ describe("parse expressions", () => {
         expect(parsed).toEqual([{ type: "number", value: 100_000_000 }, ""]);
     });
 
+    it("can't parse number expression with invalid decorative delimiters", () => {
+        expect(parseExpression(".100")).toEqual([null, ".100"]);
+        expect(parseExpression("100.")).toEqual([null, "100."]);
+        expect(parseExpression("1..00")).toEqual([null, "1..00"]);
+    });
+
     it("can't empty number expression", () => {
         const parsed = parseExpression("");
         expect(parsed).toEqual([null, ""]);

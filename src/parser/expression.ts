@@ -1,4 +1,5 @@
 import {
+    extractNumber,
     extractOperator,
     extractToken,
     extractTokens,
@@ -7,7 +8,10 @@ import {
     extractWhitespace1,
 } from "./extractors";
 
-export type PrimitiveExpression = NumberExpression | BooleanExpression | StringExpression;
+export type PrimitiveExpression =
+    | NumberExpression
+    | BooleanExpression
+    | StringExpression;
 
 export type NumberExpression = { type: "number"; value: number };
 export type BooleanExpression = { type: "boolean"; value: boolean };
@@ -52,17 +56,26 @@ export function parseExpression(input: string): [Expression | null, string] {
 function parseNumberExpression(
     input: string,
 ): [NumberExpression | null, string] {
-    const DIGITS = new Set([..."0123456789"]);
-    const [numS, rest] = extractWhile1(input, (chr) => DIGITS.has(chr));
-    return [
-        numS === null
-            ? null
-            : {
-                  type: "number",
-                  value: parseInt(numS),
-              },
-        rest,
-    ];
+    var [num, rest] = extractNumber(input);
+    if (num === null) {
+        return [null, input];
+    }
+
+    var [delimiter, rest] = extractToken(rest, ",");
+    if (delimiter !== null) {
+        var [decimalNum, rest] = extractNumber(rest);
+        if (decimalNum === null) {
+            return [null, input];
+        }
+
+        return [{
+            type: "number",
+            // TODO find a better, mathematical solution than this
+            value: parseFloat(num.toString() + "." + decimalNum.toString()),
+        }, rest];
+    }
+
+    return [{ type: "number", value: num }, rest];
 }
 
 function parseBooleanExpression(
