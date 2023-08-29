@@ -68,10 +68,12 @@ function parseNumberExpression(
             return [null, input];
         }
 
+        const floatNum = decimalNum / (10 ** (Math.floor(Math.log10(decimalNum)) + 1));
+        const finalNum = num + floatNum;
+
         return [{
             type: "number",
-            // TODO find a better, mathematical solution than this
-            value: parseFloat(num.toString() + "." + decimalNum.toString()),
+            value: finalNum,
         }, rest];
     }
 
