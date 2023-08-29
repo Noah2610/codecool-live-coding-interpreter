@@ -1,5 +1,5 @@
 ```
-# LITERAL
+# PRIMITIVES
 123!
 wahr!
 falsch!
