@@ -1,4 +1,4 @@
-import { runExpression } from ".";
+import { runExpression } from "./expression";
 import { Expression } from "../parser/expression";
 
 describe("runner", () => {
