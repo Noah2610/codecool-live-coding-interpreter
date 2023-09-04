@@ -62,7 +62,7 @@ function parseVariableDefinitionStatement(
         return [null, rest];
     }
 
-    var [identifier, rest] = extractIdentifierUntil(rest, "ist");
+    var [identifier, rest] = extractIdentifierUntil(rest, " ist");
     if (identifier === null) {
         return [null, input];
     }

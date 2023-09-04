@@ -1,4 +1,5 @@
 import {
+    extractIdentifierUntil,
     extractNumber,
     extractOperator,
     extractToken,
@@ -21,12 +22,17 @@ export type OperationExpression = {
     lhs: Expression;
     rhs: Expression;
 };
+export type VariableReferenceExpression = {
+    type: "variableReference";
+    identifier: string;
+};
 
 export type Expression =
     | NumberExpression
     | BooleanExpression
     | StringExpression
-    | OperationExpression;
+    | OperationExpression
+    | VariableReferenceExpression;
 
 export function parseExpression(input: string): [Expression | null, string] {
     const operation = parseOperationExpression(input);
@@ -49,6 +55,11 @@ export function parseExpression(input: string): [Expression | null, string] {
         return str;
     }
 
+    const variableRef = parseVariableReferenceExpression(input);
+    if (variableRef[0] !== null) {
+        return variableRef;
+    }
+
     return [null, input];
 }
 
@@ -67,13 +78,17 @@ function parseNumberExpression(
             return [null, input];
         }
 
-        const floatNum = decimalNum / (10 ** (Math.floor(Math.log10(decimalNum)) + 1));
+        const floatNum =
+            decimalNum / 10 ** (Math.floor(Math.log10(decimalNum)) + 1);
         const finalNum = num + floatNum;
 
-        return [{
-            type: "number",
-            value: finalNum,
-        }, rest];
+        return [
+            {
+                type: "number",
+                value: finalNum,
+            },
+            rest,
+        ];
     }
 
     return [{ type: "number", value: num }, rest];
@@ -165,4 +180,18 @@ function parseOperationExpression(
     };
 
     return [operation, rest];
+}
+
+function parseVariableReferenceExpression(
+    input: string,
+): [VariableReferenceExpression | null, string] {
+    var [token, rest] = extractToken(input, "/");
+    if (token === null) {
+        return [null, input];
+    }
+    var [identifier, rest] = extractIdentifierUntil(rest, "/");
+    if (identifier === null) {
+        return [null, input];
+    }
+    return [{ type: "variableReference", identifier }, ""];
 }

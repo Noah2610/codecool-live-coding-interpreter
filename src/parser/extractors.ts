@@ -140,50 +140,51 @@ export function extractIdentifierUntil(
 ): [string | null, string] {
     // TODO: alternative approach
     // const terminatorWithWs = " " + terminator;
-    // let skipUntil: number | null = null;
-    // return extractWhile1(rest, (chr, i) => {
-    //     if (skipUntil !== null) {
-    //         if (i < skipUntil) {
-    //             return "skip";
-    //         }
-    //         return false;
+    var [_ws, rest] = extractWhitespace(input);
+    let skipUntil: number | null = null;
+    return extractWhile1(rest, (chr, i) => {
+        if (skipUntil !== null) {
+            if (i < skipUntil) {
+                return "skip";
+            }
+            return false;
+        }
+        if (rest.slice(i, i + terminator.length) === terminator) {
+            skipUntil = i + terminator.length;
+            return "skip";
+        }
+        if (chr === " " && (rest[i + 1] === undefined || rest[i + 1] === " ")) {
+            return "skip";
+        }
+        return true;
+    });
+
+    // var rest = input;
+    // let extracted = "";
+
+    // var ws: string | null = "";
+    // var [_ws, rest] = extractWhitespace(rest);
+
+    // while (true) {
+    //     var [word, rest] = extractWhile1(rest, (chr) => chr !== " ");
+    //     if (word === null) {
+    //         return [null, input];
     //     }
-    //     if (rest.slice(i, i + terminatorWithWs.length) === terminatorWithWs) {
-    //         skipUntil = i + terminatorWithWs.length;
-    //         return "skip";
+
+    //     if (word === terminator) {
+    //         break;
     //     }
-    //     if (chr === " " && (rest[i - 1] === undefined || rest[i - 1] === " ")) {
-    //         return "skip";
+
+    //     if (ws.length > 0) {
+    //         extracted += " ";
     //     }
-    //     return true;
-    // });
+    //     extracted += word;
 
-    var rest = input;
-    let extracted = "";
+    //     var [ws, rest] = extractWhitespace1(rest);
+    //     if (ws === null) {
+    //         return [null, input];
+    //     }
+    // }
 
-    var ws: string | null = "";
-    var [_ws, rest] = extractWhitespace(rest);
-
-    while (true) {
-        var [word, rest] = extractWhile1(rest, (chr) => chr !== " ");
-        if (word === null) {
-            return [null, input];
-        }
-
-        if (word === terminator) {
-            break;
-        }
-
-        if (ws.length > 0) {
-            extracted += " ";
-        }
-        extracted += word;
-
-        var [ws, rest] = extractWhitespace1(rest);
-        if (ws === null) {
-            return [null, input];
-        }
-    }
-
-    return [extracted, rest];
+    // return [extracted, rest];
 }

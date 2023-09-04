@@ -15,6 +15,9 @@ export function runExpression(expression: Expression): PrimitiveExpression {
         case "operation": {
             return runOperationExpression(expression);
         }
+        case "variableReference": {
+            throw new Error("[Unimplemented] variableReference")
+        }
         default: {
             expectNever(expression);
         }
