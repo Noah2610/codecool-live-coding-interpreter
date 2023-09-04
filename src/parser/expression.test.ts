@@ -109,4 +109,18 @@ describe("parse expressions", () => {
             "",
         ]);
     });
+
+    it("parses variableReference", () => {
+        expect(parseExpression("/Meine Variable/")).toEqual([
+            { type: "variableReference", identifier: "Meine Variable" },
+            "",
+        ]);
+        expect(parseExpression("/ Toller  Wert   mit    Abständen/")).toEqual([
+            {
+                type: "variableReference",
+                identifier: "Toller Wert mit Abständen",
+            },
+            "",
+        ]);
+    });
 });

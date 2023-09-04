@@ -44,15 +44,15 @@ describe("extractors", () => {
     });
 
     it("extracts identifier (extractIdentifierUntil)", () => {
-        expect(extractIdentifierUntil("Meine Variable ist", "ist")).toEqual([
+        expect(extractIdentifierUntil("Meine Variable ist", " ist")).toEqual([
             "Meine Variable",
             "",
         ]);
-        expect(extractIdentifierUntil("Dieser Wert ist 123", "ist")).toEqual([
+        expect(extractIdentifierUntil("Dieser Wert ist 123", " ist")).toEqual([
             "Dieser Wert",
             " 123",
         ]);
-        expect(extractIdentifierUntil("  Mein   Etwas   ist something", "ist")).toEqual([
+        expect(extractIdentifierUntil("  Mein   Etwas   ist something", " ist")).toEqual([
             "Mein Etwas",
             " something",
         ]);
