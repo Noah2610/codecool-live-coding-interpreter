@@ -4,7 +4,6 @@ import {
     extractToken,
     extractTokens,
     extractWhile,
-    extractWhile1,
     extractWhitespace1,
 } from "./extractors";
 
@@ -133,13 +132,6 @@ function parseStringExpression(
 function parseOperationExpression(
     input: string,
 ): [OperationExpression | null, string] {
-    // die Summe von 10 und 20
-    // die Differenz von 10 und 20
-    // das Produkt von 10 und 20
-    // der Quotient von 10 und 20
-
-    // input = "die Summe von 10 und 20"
-
     // TODO: create modular extractor function, which takes extractor functions
     // extractExtractors(input, [
     //     (rest) => extractToken(rest, "die"), // "die",

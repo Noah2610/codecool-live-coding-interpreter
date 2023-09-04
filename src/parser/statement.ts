@@ -1,5 +1,6 @@
 import { Expression, parseExpression } from "./expression";
 import {
+    extractIdentifierUntil,
     extractOneOfToken,
     extractToken,
     extractWhile1,
@@ -61,28 +62,9 @@ function parseVariableDefinitionStatement(
         return [null, rest];
     }
 
-    let identifier = "";
-    ws = "";
-
-    while (true) {
-        var [word, rest] = extractWhile1(rest, (chr) => chr.trim().length > 0);
-        if (word === null) {
-            return [null, input];
-        }
-
-        if (word === "ist") {
-            break;
-        }
-
-        if (ws.length > 0) {
-            identifier += " ";
-        }
-        identifier += word;
-
-        var [ws, rest] = extractWhitespace1(rest);
-        if (ws === null) {
-            return [null, input];
-        }
+    var [identifier, rest] = extractIdentifierUntil(rest, "ist");
+    if (identifier === null) {
+        return [null, input];
     }
 
     var [ws, rest] = extractWhitespace1(rest);

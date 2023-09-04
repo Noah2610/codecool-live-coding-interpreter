@@ -1,4 +1,5 @@
 import {
+    extractIdentifierUntil,
     extractToken,
     extractWhile,
     extractWhile1,
@@ -40,5 +41,20 @@ describe("extractors", () => {
     it("extracts at least one whitespace (extractWhitespace1)", () => {
         expect(extractWhitespace1("foo")).toEqual([null, "foo"]);
         expect(extractWhitespace1("  foo")).toEqual(["  ", "foo"]);
+    });
+
+    it("extracts identifier (extractIdentifierUntil)", () => {
+        expect(extractIdentifierUntil("Meine Variable ist", "ist")).toEqual([
+            "Meine Variable",
+            "",
+        ]);
+        expect(extractIdentifierUntil("Dieser Wert ist 123", "ist")).toEqual([
+            "Dieser Wert",
+            " 123",
+        ]);
+        expect(extractIdentifierUntil("  Mein   Etwas   ist something", "ist")).toEqual([
+            "Mein Etwas",
+            " something",
+        ]);
     });
 });

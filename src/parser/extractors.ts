@@ -1,3 +1,38 @@
+export function extractWhile(
+    input: string,
+    predicate: (chr: string, i: number) => boolean | "skip",
+): [string, string] {
+    let result = "";
+    let skipCount = 0;
+
+    for (let i = 0; i < input.length; i++) {
+        const chr = input[i]!;
+        const predicateResult = predicate(chr, i);
+        if (predicateResult === false) {
+            break;
+        }
+        if (predicateResult === "skip") {
+            skipCount++;
+            continue;
+        }
+        result += chr;
+    }
+
+    const rest = input.slice(result.length + skipCount);
+    return [result, rest];
+}
+
+export function extractWhile1(
+    input: string,
+    predicate: (chr: string, i: number) => boolean | "skip",
+): [string | null, string] {
+    const extracted = extractWhile(input, predicate);
+    if (extracted[0].length === 0) {
+        return [null, input];
+    }
+    return extracted;
+}
+
 export function extractToken(
     input: string,
     token: string,
@@ -99,37 +134,56 @@ export function extractNumber(input: string): [number | null, string] {
     return [parseInt(numS), rest];
 }
 
-export function extractWhile(
+export function extractIdentifierUntil(
     input: string,
-    predicate: (chr: string, i: number) => boolean | "skip",
-): [string, string] {
-    let result = "";
-    let skipCount = 0;
+    terminator: string,
+): [string | null, string] {
+    // TODO: alternative approach
+    // const terminatorWithWs = " " + terminator;
+    // let skipUntil: number | null = null;
+    // return extractWhile1(rest, (chr, i) => {
+    //     if (skipUntil !== null) {
+    //         if (i < skipUntil) {
+    //             return "skip";
+    //         }
+    //         return false;
+    //     }
+    //     if (rest.slice(i, i + terminatorWithWs.length) === terminatorWithWs) {
+    //         skipUntil = i + terminatorWithWs.length;
+    //         return "skip";
+    //     }
+    //     if (chr === " " && (rest[i - 1] === undefined || rest[i - 1] === " ")) {
+    //         return "skip";
+    //     }
+    //     return true;
+    // });
 
-    for (let i = 0; i < input.length; i++) {
-        const chr = input[i]!;
-        const predicateResult = predicate(chr, i);
-        if (predicateResult === false) {
+    var rest = input;
+    let extracted = "";
+
+    var ws: string | null = "";
+    var [_ws, rest] = extractWhitespace(rest);
+
+    while (true) {
+        var [word, rest] = extractWhile1(rest, (chr) => chr !== " ");
+        if (word === null) {
+            return [null, input];
+        }
+
+        if (word === terminator) {
             break;
         }
-        if (predicateResult === "skip") {
-            skipCount++;
-            continue;
+
+        if (ws.length > 0) {
+            extracted += " ";
         }
-        result += chr;
+        extracted += word;
+
+        var [ws, rest] = extractWhitespace1(rest);
+        if (ws === null) {
+            return [null, input];
+        }
     }
 
-    const rest = input.slice(result.length + skipCount);
-    return [result, rest];
-}
-
-export function extractWhile1(
-    input: string,
-    predicate: (chr: string, i: number) => boolean | "skip",
-): [string | null, string] {
-    const extracted = extractWhile(input, predicate);
-    if (extracted[0].length === 0) {
-        return [null, input];
-    }
-    return extracted;
+    return [extracted, rest];
 }
