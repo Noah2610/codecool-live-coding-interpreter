@@ -1,11 +1,11 @@
 {
-    "name": "interpreter",
+    "name": "oidascript",
     "version": "0.0.0",
     "main": "index.js",
     "author": "Noah Rosenzweig <noah.rosenzweig@codecool.com>",
     "license": "MIT",
     "scripts": {
-        "build": "rm -rf dist/ && tsc",
+        "build": "rm -rf dist/ && tsc && cp package.json dist/",
         "build:watch": "tsc --watch",
         "test": "jest",
         "test:watch": "jest --watch"

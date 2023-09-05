@@ -10,7 +10,7 @@ export function runStatement(
 ): PrimitiveExpression | null {
     switch (statement.type) {
         case "expression": {
-            return runExpression(statement.value);
+            return runExpression(statement.value, context);
         }
         case "variableDefinition": {
             const identifier = statement.identifier;

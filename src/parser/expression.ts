@@ -193,5 +193,5 @@ function parseVariableReferenceExpression(
     if (identifier === null) {
         return [null, input];
     }
-    return [{ type: "variableReference", identifier }, ""];
+    return [{ type: "variableReference", identifier }, rest];
 }

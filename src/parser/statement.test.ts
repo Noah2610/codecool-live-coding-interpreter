@@ -52,4 +52,18 @@ describe("parse statements", () => {
             "",
         ]);
     });
+
+    it("parses variableReference expression statement", () => {
+        const parsed = parseStatement("/Meine Variable/!");
+        expect(parsed).toEqual([
+            {
+                type: "expression",
+                value: {
+                    type: "variableReference",
+                    identifier: "Meine Variable",
+                },
+            },
+            "",
+        ]);
+    });
 });
