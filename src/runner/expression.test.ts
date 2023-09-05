@@ -1,5 +1,6 @@
 import { runExpression } from "./expression";
 import { Expression } from "../parser/expression";
+import { Context } from "./context";
 
 describe("runner", () => {
     it("runs boolean expression", () => {
@@ -59,5 +60,17 @@ describe("runner", () => {
         };
         const result = runExpression(exp);
         expect(result).toEqual({ type: "number", value: 4 });
+    });
+
+    it("runs variableReference", () => {
+        const context = new Context();
+        context.setVariable("Meine Variable", { type: "boolean", value: true });
+
+        const exp: Expression = {
+            type: "variableReference",
+            identifier: "Meine Variable",
+        };
+        const result = runExpression(exp, context);
+        expect(result).toEqual({ type: "boolean", value: true });
     });
 });

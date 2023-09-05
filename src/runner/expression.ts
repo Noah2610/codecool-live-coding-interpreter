@@ -1,7 +1,20 @@
 import { expectNever } from "ts-expect";
-import { Expression, OperationExpression, PrimitiveExpression } from "../parser/expression";
+import {
+    Expression,
+    OperationExpression,
+    PrimitiveExpression,
+} from "../parser/expression";
+import { Context } from "./context";
 
-export function runExpression(expression: Expression): PrimitiveExpression {
+export function runExpression(
+    expression: Expression,
+    context?: Context,
+): PrimitiveExpression {
+    // TODO
+    if (!context) {
+        context = new Context();
+    }
+
     switch (expression.type) {
         case "boolean": {
             return expression;
@@ -13,10 +26,15 @@ export function runExpression(expression: Expression): PrimitiveExpression {
             return expression;
         }
         case "operation": {
-            return runOperationExpression(expression);
+            return runOperationExpression(expression, context);
         }
         case "variableReference": {
-            throw new Error("[Unimplemented] variableReference")
+            const identifier = expression.identifier;
+            const value = context.getVariable(identifier);
+            if (value === null) {
+                throw new Error(`[run variableReference] Variable with name "${identifier}" does not exist`);
+            }
+            return value;
         }
         default: {
             expectNever(expression);
@@ -24,14 +42,21 @@ export function runExpression(expression: Expression): PrimitiveExpression {
     }
 }
 
-function runOperationExpression(expression: OperationExpression): PrimitiveExpression {
-    const left = runExpression(expression.lhs);
+function runOperationExpression(
+    expression: OperationExpression,
+    context: Context,
+): PrimitiveExpression {
+    const left = runExpression(expression.lhs, context);
     if (left.type !== "number") {
-        throw new Error("[Unimplemented runOperationExpression] Expected operation to get number for lhs and rhs");
+        throw new Error(
+            "[Unimplemented runOperationExpression] Expected operation to get number for lhs and rhs",
+        );
     }
-    const right = runExpression(expression.rhs);
+    const right = runExpression(expression.rhs, context);
     if (right.type !== "number") {
-        throw new Error("[Unimplemented runOperationExpression] Expected operation to get number for lhs and rhs");
+        throw new Error(
+            "[Unimplemented runOperationExpression] Expected operation to get number for lhs and rhs",
+        );
     }
 
     let result: number;
