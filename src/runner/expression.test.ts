@@ -3,18 +3,27 @@ import { Expression } from "../parser/expression";
 import { Context } from "./context";
 
 describe("runner", () => {
+    let context: Context;
+
+    beforeEach(() => {
+        context = new Context();
+    });
+
     it("runs boolean expression", () => {
-        const result = runExpression({ type: "boolean", value: true });
+        const result = runExpression({ type: "boolean", value: true }, context);
         expect(result).toBeTruthy();
     });
 
     it("runs number expression", () => {
-        const result = runExpression({ type: "number", value: 123 });
+        const result = runExpression({ type: "number", value: 123 }, context);
         expect(result).toBeTruthy();
     });
 
     it("runs string expression", () => {
-        const result = runExpression({ type: "string", value: "Hallo" });
+        const result = runExpression(
+            { type: "string", value: "Hallo" },
+            context,
+        );
         expect(result).toBeTruthy();
     });
 
@@ -25,7 +34,7 @@ describe("runner", () => {
             lhs: { type: "number", value: 10 },
             rhs: { type: "number", value: 20 },
         };
-        const result = runExpression(exp);
+        const result = runExpression(exp, context);
         expect(result).toEqual({ type: "number", value: 30 });
     });
 
@@ -36,7 +45,7 @@ describe("runner", () => {
             lhs: { type: "number", value: 20 },
             rhs: { type: "number", value: 10 },
         };
-        const result = runExpression(exp);
+        const result = runExpression(exp, context);
         expect(result).toEqual({ type: "number", value: 10 });
     });
 
@@ -47,7 +56,7 @@ describe("runner", () => {
             lhs: { type: "number", value: 3 },
             rhs: { type: "number", value: 5 },
         };
-        const result = runExpression(exp);
+        const result = runExpression(exp, context);
         expect(result).toEqual({ type: "number", value: 15 });
     });
 
@@ -58,7 +67,7 @@ describe("runner", () => {
             lhs: { type: "number", value: 12 },
             rhs: { type: "number", value: 3 },
         };
-        const result = runExpression(exp);
+        const result = runExpression(exp, context);
         expect(result).toEqual({ type: "number", value: 4 });
     });
 

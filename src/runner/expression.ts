@@ -8,13 +8,8 @@ import { Context } from "./context";
 
 export function runExpression(
     expression: Expression,
-    context?: Context,
+    context: Context,
 ): PrimitiveExpression {
-    // TODO
-    if (!context) {
-        context = new Context();
-    }
-
     switch (expression.type) {
         case "boolean": {
             return expression;
