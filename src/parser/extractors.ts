@@ -188,3 +188,39 @@ export function extractIdentifierUntil(
 
     // return [extracted, rest];
 }
+
+export function extractEnclosed(
+    input: string,
+    boundary: string,
+): [string | null, string] {
+    var [bound, rest] = extractToken(input, boundary);
+    if (!bound) {
+        return [null, input];
+    }
+
+    let isEscaped = false;
+
+    var [extracted, rest] = extractWhile(rest, (chr, i) => {
+        if (!isEscaped && chr === "\\") {
+            isEscaped = true;
+            return "skip";
+        }
+
+        if (!isEscaped && rest.slice(i, i + boundary.length) === boundary) {
+            return false;
+        }
+
+        if (isEscaped) {
+            isEscaped = false;
+        }
+
+        return true;
+    });
+
+    var [bound, rest] = extractToken(rest, boundary);
+    if (bound === null) {
+        return [null, input];
+    }
+
+    return [extracted, rest];
+}

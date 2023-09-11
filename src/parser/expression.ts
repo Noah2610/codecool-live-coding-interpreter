@@ -1,10 +1,10 @@
 import {
+    extractEnclosed,
     extractIdentifierUntil,
     extractNumber,
     extractOperator,
     extractToken,
     extractTokens,
-    extractWhile,
     extractWhitespace1,
 } from "./extractors";
 
@@ -111,37 +111,11 @@ function parseBooleanExpression(
 function parseStringExpression(
     input: string,
 ): [StringExpression | null, string] {
-    var [quote, rest] = extractToken(input, '"');
-    if (!quote) {
+    const [str, rest] = extractEnclosed(input, '"');
+    if (str === null) {
         return [null, input];
     }
-
-    let isEscaped = false;
-    let didCloseString = false;
-
-    var [str, rest] = extractWhile(rest, (chr) => {
-        if (!isEscaped && chr === "\\") {
-            isEscaped = true;
-            return "skip";
-        }
-
-        if (!isEscaped && chr === '"') {
-            didCloseString = true;
-            return false;
-        }
-
-        if (isEscaped) {
-            isEscaped = false;
-        }
-
-        return true;
-    });
-
-    if (!didCloseString) {
-        return [null, input];
-    }
-
-    return [{ type: "string", value: str }, rest.slice(1)];
+    return [{ type: "string", value: str }, rest];
 }
 
 function parseOperationExpression(
