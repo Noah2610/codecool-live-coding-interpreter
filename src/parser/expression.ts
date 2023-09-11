@@ -122,14 +122,13 @@ function parseOperationExpression(
     input: string,
 ): [OperationExpression | null, string] {
     // TODO: create modular extractor function, which takes extractor functions
-    // extractExtractors(input, [
-    //     (rest) => extractToken(rest, "die"), // "die",
-    //     [extractToken, "die"]
-
+    // const { op, lhs, rhs, rest } = extractSequential(input, [
+    //     ["op", extractOperator],
+    //     ["lhs", parseExpression],
     //     extractWhitespace1,
-    //     extractOneOfTokens(input, ["Summe", "Differenz"])
+    //     (s) => extractToken(s, "und"),
     //     extractWhitespace1,
-    //     extractToken, // "von",
+    //     ["rhs", parseExpression],
     // ]);
 
     var [op, rest] = extractOperator(input);
