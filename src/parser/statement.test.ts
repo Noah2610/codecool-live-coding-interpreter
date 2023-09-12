@@ -69,9 +69,9 @@ describe("parse statements", () => {
 
     it("parses functionDefinition statement without parameters", () => {
         const parsed = parseStatement(`
-            die Funktion Ausführen beginnt hier
+            die Funktion Ausführen macht
                 wahr!
-            endet hier!`);
+            und endet hier!`);
         const expected = {
             type: "functionDefinition",
             identifier: "Ausführen",
@@ -88,9 +88,9 @@ describe("parse statements", () => {
 
     it("parses functionDefinition statement with one parameter", () => {
         const parsed = parseStatement(`
-            die Funktion Verdoppeln kriegt Zahl und beginnt hier
+            die Funktion Verdoppeln kriegt Zahl und macht
                 das Produkt aus /Zahl/ und 2!
-            endet hier!`);
+            und endet hier!`);
         const expected = {
             type: "functionDefinition",
             identifier: "Verdoppeln",
@@ -112,9 +112,9 @@ describe("parse statements", () => {
 
     it("parses functionDefinition statement with two parameters", () => {
         const parsed = parseStatement(`
-            die Funktion Addiere die Zahlen kriegt Erste und Zweite und beginnt hier
+            die Funktion Addiere die Zahlen kriegt Erste und Zweite und macht
                 die Summe von /Erste/ und /Zweite/!
-            endet hier!`);
+            und endet hier!`);
         const expected = {
             type: "functionDefinition",
             identifier: "Addiere die Zahlen",
@@ -139,10 +139,10 @@ describe("parse statements", () => {
 
     it("parses functionDefinition statement with three parameters", () => {
         const parsed = parseStatement(`
-            die Funktion Nimm 3 kriegt eins, zwei und drei und beginnt hier
+            die Funktion Nimm 3 kriegt eins, zwei und drei und macht
                 die Summe von /eins/ und /zwei/!
                 die Summe von /eins/ und /drei/!
-            endet hier!`);
+            und endet hier!`);
         const expected = {
             type: "functionDefinition",
             identifier: "Nimm 3",
