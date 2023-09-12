@@ -18,6 +18,9 @@ export function runStatement(
             context.setVariable(identifier, runExpression(expression, context));
             return null;
         }
+        case "functionDefinition": {
+            throw new Error("unimplemented");
+        }
         default: {
             expectNever(statement);
         }
