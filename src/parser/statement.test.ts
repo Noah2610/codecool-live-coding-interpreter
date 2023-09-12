@@ -66,4 +66,108 @@ describe("parse statements", () => {
             "",
         ]);
     });
+
+    it("parses functionDefinition statement without parameters", () => {
+        const parsed = parseStatement(`
+            die Funktion Ausführen beginnt hier
+                wahr!
+            endet hier!`);
+        const expected = {
+            type: "functionDefinition",
+            identifier: "Ausführen",
+            parameters: [],
+            body: [
+                {
+                    type: "expression",
+                    value: { type: "boolean", value: true },
+                },
+            ],
+        };
+        expect(parsed).toEqual([expected, ""]);
+    });
+
+    it("parses functionDefinition statement with one parameter", () => {
+        const parsed = parseStatement(`
+            die Funktion Verdoppeln kriegt Zahl und beginnt hier
+                das Produkt aus /Zahl/ und 2!
+            endet hier!`);
+        const expected = {
+            type: "functionDefinition",
+            identifier: "Verdoppeln",
+            parameters: ["Zahl"],
+            body: [
+                {
+                    type: "expression",
+                    value: {
+                        type: "operation",
+                        op: "*",
+                        lhs: { type: "variableReference", identifier: "Zahl" },
+                        rhs: { type: "number", value: 2 },
+                    },
+                },
+            ],
+        };
+        expect(parsed).toEqual([expected, ""]);
+    });
+
+    it("parses functionDefinition statement with two parameters", () => {
+        const parsed = parseStatement(`
+            die Funktion Addiere die Zahlen kriegt Erste und Zweite und beginnt hier
+                die Summe von /Erste/ und /Zweite/!
+            endet hier!`);
+        const expected = {
+            type: "functionDefinition",
+            identifier: "Addiere die Zahlen",
+            parameters: ["Erste", "Zweite"],
+            body: [
+                {
+                    type: "expression",
+                    value: {
+                        type: "operation",
+                        op: "+",
+                        lhs: { type: "variableReference", identifier: "Erste" },
+                        rhs: {
+                            type: "variableReference",
+                            identifier: "Zweite",
+                        },
+                    },
+                },
+            ],
+        };
+        expect(parsed).toEqual([expected, ""]);
+    });
+
+    it("parses functionDefinition statement with three parameters", () => {
+        const parsed = parseStatement(`
+            die Funktion Nimm 3 kriegt eins, zwei und drei und beginnt hier
+                die Summe von /eins/ und /zwei/!
+                die Summe von /eins/ und /drei/!
+            endet hier!`);
+        const expected = {
+            type: "functionDefinition",
+            identifier: "Nimm 3",
+            parameters: ["eins", "zwei", "drei"],
+            body: [
+                {
+                    type: "expression",
+                    value: {
+                        type: "operation",
+                        op: "+",
+                        lhs: { type: "variableReference", identifier: "eins" },
+                        rhs: { type: "variableReference", identifier: "zwei" },
+                    },
+                },
+                {
+                    type: "expression",
+                    value: {
+                        type: "operation",
+                        op: "+",
+                        lhs: { type: "variableReference", identifier: "eins" },
+                        rhs: { type: "variableReference", identifier: "drei" },
+                    },
+                },
+            ],
+        };
+        expect(parsed).toEqual([expected, ""]);
+    });
 });

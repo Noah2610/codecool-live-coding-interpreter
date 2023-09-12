@@ -34,4 +34,23 @@ describe("run statements", () => {
             value: true,
         });
     });
+
+    it("runs a functionDefinition statement", () => {
+        const result = runStatement(
+            {
+                type: "functionDefinition",
+                identifier: "Ausführen",
+                parameters: [],
+                body: [
+                    {
+                        type: "expression",
+                        value: { type: "boolean", value: true },
+                    },
+                ],
+            },
+            context,
+        );
+        // TODO check if function is saved to context
+        expect(false).toBeTruthy();
+    });
 });

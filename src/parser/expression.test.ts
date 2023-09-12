@@ -123,4 +123,59 @@ describe("parse expressions", () => {
             "",
         ]);
     });
+
+    it("parses functionCall expression without parameters", () => {
+        const parsed = parseExpression("mach Berechnen!");
+        expect(parsed).toEqual([
+            {
+                type: "functionCall",
+                identifier: "Berechnen",
+                parameters: [],
+            },
+            "",
+        ]);
+    });
+
+    it("parses functionCall expression with one parameter", () => {
+        const parsed = parseExpression("mach Verdoppeln mit 5!");
+        expect(parsed).toEqual([
+            {
+                type: "functionCall",
+                identifier: "Verdoppeln",
+                parameters: [{ type: "number", value: 5 }],
+            },
+            "",
+        ]);
+    });
+
+    it("parses functionCall expression with two parameters", () => {
+        const parsed = parseExpression("mach Addiere die Zahlen mit 5 und 10!");
+        expect(parsed).toEqual([
+            {
+                type: "functionCall",
+                identifier: "Addiere die Zahlen",
+                parameters: [
+                    { type: "number", value: 5 },
+                    { type: "number", value: 10 },
+                ],
+            },
+            "",
+        ]);
+    });
+
+    it("parses functionCall expression with three parameters", () => {
+        const parsed = parseExpression("mach Nimm 3 mit 1, 2 und 3!");
+        expect(parsed).toEqual([
+            {
+                type: "functionCall",
+                identifier: "Nimm 3",
+                parameters: [
+                    { type: "number", value: 1 },
+                    { type: "number", value: 2 },
+                    { type: "number", value: 3 },
+                ],
+            },
+            "",
+        ]);
+    });
 });
