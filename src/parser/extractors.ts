@@ -140,7 +140,7 @@ export function extractUntil(
 ): [string | null, string] {
     var [_ws, rest] = extractWhitespace(input);
     var [extracted, rest] = extractWhile1(rest, (_chr, i) => {
-        return (rest.slice(i, i + terminator.length) !== terminator);
+        return rest.slice(i, i + terminator.length) !== terminator;
     });
 
     if (extracted === null) return [null, input];
@@ -236,4 +236,81 @@ export function extractDelimitedList(
     }
 
     return [result, rest];
+}
+
+export function extractFunctionDefinitionHeader(
+    input: string,
+): [
+    { identifier: string; parameters: string[] } | { error: Error } | null,
+    string,
+] {
+    var [token, rest] = extractToken(input, "die Funktion");
+    if (token === null) return [null, input];
+
+    const parameters: string[] = [];
+
+    var [identifier, rest] = extractUntil(rest, " kriegt ");
+
+    if (identifier === null) {
+        var [identifier, rest] = extractUntil(rest, " macht");
+        if (identifier === null) {
+            return [
+                {
+                    error: new Error(
+                        "Failed to parse functionDefinition: expected identifier",
+                    ),
+                },
+                input,
+            ];
+        }
+    } else {
+        var [extractedParams, rest] = extractDelimitedList(rest, ",", "und");
+        if (extractedParams === null) {
+            return [
+                {
+                    error: new Error(
+                        'Failed to parse functionDefinition parameters: expected "und"',
+                    ),
+                },
+                input,
+            ];
+        }
+        parameters.push(...extractedParams.map(formatIdentifier));
+
+        const hasFinalParam = parameters.length > 1;
+
+        var [_ws, rest] = extractWhitespace(rest);
+        var [token, rest] = extractToken(rest, "macht");
+
+        if (token !== null) {
+            if (hasFinalParam) {
+                return [
+                    {
+                        error: new Error(
+                            'Failed to parse functionDefinition: expected final parameter after "und"',
+                        ),
+                    },
+                    rest,
+                ];
+            } else {
+                return [{ identifier, parameters }, rest];
+            }
+        }
+
+        var [param, rest] = extractIdentifierUntil(rest, "und macht");
+        if (param === null) {
+            return [
+                {
+                    error: new Error(
+                        'Failed to parse functionDefinition: expected final parameter before "macht"',
+                    ),
+                },
+                rest,
+            ];
+        }
+
+        parameters.push(param);
+    }
+
+    return [{ identifier, parameters }, rest]
 }

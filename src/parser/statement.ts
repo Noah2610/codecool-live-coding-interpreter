@@ -1,11 +1,14 @@
 import { Expression, parseExpression } from "./expression";
 import {
-    extractIdentifierUntil,
+    extractUntil,
     extractOneOfToken,
     extractToken,
     extractWhile1,
     extractWhitespace,
     extractWhitespace1,
+    extractDelimitedList,
+    formatIdentifier,
+    extractFunctionDefinitionHeader,
 } from "./extractors";
 
 export type ExpressionStatement = {
@@ -78,7 +81,7 @@ function parseVariableDefinitionStatement(
         return [null, rest];
     }
 
-    var [identifier, rest] = extractIdentifierUntil(rest, " ist");
+    var [identifier, rest] = extractUntil(rest, " ist");
     if (identifier === null) {
         return [null, input];
     }
@@ -106,92 +109,15 @@ function parseVariableDefinitionStatement(
 function parseFunctionDefinition(
     input: string,
 ): [FunctionDefinitionStatement | null, string] {
-    // die Funktion Berechnen macht
-    //     das Resultat ist die Summe von 10 und 20!
-    // und endet hier!
-
-    // token: die Funktion
-    var [token, rest] = extractToken(input, "die Funktion");
-    if (token === null) return [null, input];
-
-    // ohne parameter: (
-    //     token: macht
-    // ) || mit parameter: (
-    //     token: kriegt
-    //     identifier (parameter): Name
-    //     token: und macht
-    // )
-
-    const parameters: string[] = [];
-
-    // identifier: Grüßen
-    var [identifier, rest] = extractIdentifierUntil(rest, " kriegt ");
-
-    // TODO refactor into smaller extractors (extractCommaList: "a, b, c", extractAUndB: "a und b")
-
-    if (identifier === null) {
-        var [identifier, rest] = extractIdentifierUntil(rest, " macht");
-    } else {
-        // Parse PARAMETERS
-
-        //eins, zwei und drei und macht
-
-        while (true) {
-            var [_ws, rest] = extractWhitespace(rest);
-
-            // var [param, rest] = extractIdentifierUntil(rest, " und ");
-
-            // TODO
-            let isLast = false;
-            let hitComma = false;
-
-            var [param, rest] = extractWhile1(rest, (chr, i) => {
-                if (hitComma) {
-                    return false;
-                }
-
-                if (chr === ",") {
-                    hitComma = true;
-                    return "skip";
-                }
-
-                if (rest.slice(i, i + " und".length) === " und") {
-                    isLast = true;
-                    return false;
-                }
-
-                return true;
-            });
-
-            if (param === null) {
-                // TODO
-                break;
-            }
-
-            parameters.push(param);
-            if (isLast) {
-                // TODO
-                var [_, rest] = extractToken(rest, " und");
-                break;
-            }
-        }
-
-        // var [param, rest] = extractIdentifierUntil(rest, " und ");
-        // if (param === null) throw new Error("Failed to parse functionDefinition parameter");
-        // parameters.push(param);
-
-        var [token, rest] = extractToken(rest, " macht");
-        if (token === null) {
-            var [param, rest] = extractIdentifierUntil(rest, " und macht");
-            if (param === null) {
-                throw new Error("Failed to parse last functionDefinition parameter")
-            }
-
-            parameters.push(param);
-        }
+    var [result, rest] = extractFunctionDefinitionHeader(input);
+    if (result === null) {
+        return [null, input];
     }
-
-    if (identifier === null) return [null, input];
+    // TODO proper error handling
+    if ("error" in result) {
+        throw result.error;
+    }
+    const { identifier, parameters } = result;
 
     const body = [];
 
@@ -202,7 +128,9 @@ function parseFunctionDefinition(
             var [_ws, rest] = extractWhitespace(rest);
             var [terminator, rest] = extractToken(rest, "und endet hier");
             if (terminator === null) {
-                throw new Error("Failed parsing functionDefinition body as statement");
+                throw new Error(
+                    "Failed parsing functionDefinition body as statement",
+                );
             }
             break;
         }
