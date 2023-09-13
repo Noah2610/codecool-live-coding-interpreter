@@ -125,7 +125,7 @@ describe("parse expressions", () => {
     });
 
     it("parses functionCall expression without parameters", () => {
-        const parsed = parseExpression("mach Berechnen");
+        const parsed = parseExpression("führe Berechnen aus");
         expect(parsed).toEqual([
             {
                 type: "functionCall",
@@ -137,7 +137,7 @@ describe("parse expressions", () => {
     });
 
     it("parses functionCall expression with one parameter", () => {
-        const parsed = parseExpression("mach Verdoppeln mit 5");
+        const parsed = parseExpression("führe Verdoppeln mit 5 aus");
         expect(parsed).toEqual([
             {
                 type: "functionCall",
@@ -149,7 +149,7 @@ describe("parse expressions", () => {
     });
 
     it("parses functionCall expression with two parameters", () => {
-        const parsed = parseExpression("mach Addiere die Zahlen mit 5 und 10");
+        const parsed = parseExpression("führe Addiere die Zahlen mit 5 und 10 aus");
         expect(parsed).toEqual([
             {
                 type: "functionCall",
@@ -164,7 +164,7 @@ describe("parse expressions", () => {
     });
 
     it("parses functionCall expression with three parameters", () => {
-        const parsed = parseExpression("mach Nimm 3 mit 1, 2 und 3");
+        const parsed = parseExpression("führe Nimm 3 mit 1, 2 und 3 aus");
         expect(parsed).toEqual([
             {
                 type: "functionCall",

@@ -238,6 +238,86 @@ export function extractDelimitedList(
     return [result, rest];
 }
 
+// TODO
+/**
+ * Extracts list like:
+ * "eins, zwei und drei"
+ */
+// export function extractList(
+//     input: string,
+//     terminator: string,
+// ): [string[] | null, string] {
+//     // terminator: und macht
+//     // etwas und macht -> etwas
+//     // eins und zwei und macht -> eins und zwei
+//     // eins, zwei und drei und macht -> eins, zwei und drei
+
+//     const list: string[] = [];
+
+//     var [listRaw, restEnd] = extractUntil(input, terminator);
+//     if (listRaw === null) {
+//         return [null, input]
+//     }
+//     // etwas
+//     // eins und zwei
+//     // eins, zwei und drei
+
+//     var [items, rest] = extractDelimitedList(listRaw, ",", "und");
+//     if (items === null) {
+//         var [term, rest] = extractToken(rest, terminator);
+//         if (term === null) {
+//             return [null, input];
+//         }
+
+//         return [[listRaw], restEnd];
+//     }
+//     list.push(...items.map(formatIdentifier));
+//     // eins und zwei -> eins - rest: und zwei
+//     // eins, zwei und drei -> eins, zwei - rest: und drei
+
+//     const hasFinalParam = items.length > 1;
+
+//     var [_ws, rest] = extractWhitespace(rest);
+//     var [token, rest] = extractToken(rest, "und");
+
+//     if (token === null && list.length === 1) {
+
+//     }
+
+//     // ---
+//     var [_ws, rest] = extractWhitespace(rest);
+//     var [token, rest] = extractToken(rest, terminator);
+
+//     if (token !== null) {
+//         if (hasFinalParam) {
+//             return [
+//                 {
+//                     error: new Error(
+//                         'Failed to parse functionDefinition: expected final parameter after "und"',
+//                     ),
+//                 },
+//                 rest,
+//             ];
+//         } else {
+//             return [{ identifier, parameters }, rest];
+//         }
+//     }
+
+//     var [param, rest] = extractIdentifierUntil(rest, "und macht");
+//     if (param === null) {
+//         return [
+//             {
+//                 error: new Error(
+//                     'Failed to parse functionDefinition: expected final parameter before "macht"',
+//                 ),
+//             },
+//             rest,
+//         ];
+//     }
+
+//     parameters.push(param);
+// }
+
 export function extractFunctionDefinitionHeader(
     input: string,
 ): [
@@ -249,10 +329,10 @@ export function extractFunctionDefinitionHeader(
 
     const parameters: string[] = [];
 
-    var [identifier, rest] = extractUntil(rest, " kriegt ");
+    var [identifier, rest] = extractIdentifierUntil(rest, " kriegt ");
 
     if (identifier === null) {
-        var [identifier, rest] = extractUntil(rest, " macht");
+        var [identifier, rest] = extractIdentifierUntil(rest, " macht");
         if (identifier === null) {
             return [
                 {
@@ -264,7 +344,7 @@ export function extractFunctionDefinitionHeader(
             ];
         }
     } else {
-        var [extractedParams, rest] = extractDelimitedList(rest, ",", "und");
+        var [extractedParams, rest] = extractDelimitedList(rest, ",", " und");
         if (extractedParams === null) {
             return [
                 {

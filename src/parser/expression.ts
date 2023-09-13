@@ -1,4 +1,5 @@
 import {
+    extractDelimitedList,
     extractEnclosed,
     extractIdentifierUntil,
     extractNumber,
@@ -26,13 +27,19 @@ export type VariableReferenceExpression = {
     type: "variableReference";
     identifier: string;
 };
+export type FunctionCallExpression = {
+    type: "functionCall";
+    identifier: string;
+    parameters: Expression[];
+};
 
 export type Expression =
     | NumberExpression
     | BooleanExpression
     | StringExpression
     | OperationExpression
-    | VariableReferenceExpression;
+    | VariableReferenceExpression
+    | FunctionCallExpression;
 
 export function parseExpression(input: string): [Expression | null, string] {
     const operation = parseOperationExpression(input);
@@ -58,6 +65,11 @@ export function parseExpression(input: string): [Expression | null, string] {
     const variableRef = parseVariableReferenceExpression(input);
     if (variableRef[0] !== null) {
         return variableRef;
+    }
+
+    const functionCall = parseFunctionCallExpression(input);
+    if (functionCall[0] !== null) {
+        return functionCall;
     }
 
     return [null, input];
@@ -167,4 +179,70 @@ function parseVariableReferenceExpression(
         return [null, input];
     }
     return [{ type: "variableReference", identifier }, rest];
+}
+
+function parseFunctionCallExpression(
+    input: string,
+): [FunctionCallExpression | null, string] {
+    // führe Eine Berechnung aus
+    // führe Eine Berechnung mit 10, 20 und 30 aus
+
+    var [token, rest] = extractToken(input, "führe");
+    if (token === null) return [null, input];
+
+    const parameters: string[] = [];
+
+    var [identifier, rest] = extractIdentifierUntil(rest, " mit ");
+
+    if (identifier === null) {
+        var [identifier, rest] = extractIdentifierUntil(rest, " aus");
+        if (identifier === null) {
+            throw new Error(
+                "Failed to parse functionCall: expected identifier",
+            );
+        }
+    } else {
+        var [extractedParams, rest] = extractDelimitedList(rest, ",", " und");
+        // TODO
+        if (extractedParams === null) {
+            extractToken(rest, "aus");
+        }
+        parameters.push(...extractedParams.map(formatIdentifier));
+
+        const hasFinalParam = parameters.length > 1;
+
+        var [_ws, rest] = extractWhitespace(rest);
+        var [token, rest] = extractToken(rest, "macht");
+
+        if (token !== null) {
+            if (hasFinalParam) {
+                return [
+                    {
+                        error: new Error(
+                            'Failed to parse functionDefinition: expected final parameter after "und"',
+                        ),
+                    },
+                    rest,
+                ];
+            } else {
+                return [{ identifier, parameters }, rest];
+            }
+        }
+
+        var [param, rest] = extractIdentifierUntil(rest, "und macht");
+        if (param === null) {
+            return [
+                {
+                    error: new Error(
+                        'Failed to parse functionDefinition: expected final parameter before "macht"',
+                    ),
+                },
+                rest,
+            ];
+        }
+
+        parameters.push(param);
+    }
+
+    return [{ identifier, parameters }, rest];
 }
