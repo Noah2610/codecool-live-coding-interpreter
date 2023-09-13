@@ -134,22 +134,13 @@ export function extractNumber(input: string): [number | null, string] {
     return [parseInt(numS), rest];
 }
 
-export function extractIdentifierUntil(
+export function extractUntil(
     input: string,
     terminator: string,
 ): [string | null, string] {
     var [_ws, rest] = extractWhitespace(input);
-    var [extracted, rest] = extractWhile1(rest, (chr, i) => {
-        if (rest.slice(i, i + terminator.length) === terminator) {
-            // skipUntil = i + terminator.length;
-            return false;
-        }
-        // TODO: shouldn't be extractor's responsibility to format the identifier;
-        //       create separate util function to format identifier name
-        if (chr === " " && (rest[i + 1] === undefined || rest[i + 1] === " ")) {
-            return "skip";
-        }
-        return true;
+    var [extracted, rest] = extractWhile1(rest, (_chr, i) => {
+        return (rest.slice(i, i + terminator.length) !== terminator);
     });
 
     if (extracted === null) return [null, input];
@@ -158,6 +149,32 @@ export function extractIdentifierUntil(
     if (extractedTerminator === null) return [null, input];
 
     return [extracted, rest];
+}
+
+export function extractIdentifierUntil(
+    input: string,
+    terminator: string,
+): [string | null, string] {
+    const [extracted, rest] = extractUntil(input, terminator);
+    if (extracted === null) return [null, input];
+    return [formatIdentifier(extracted), rest];
+}
+
+export function formatIdentifier(unformatted: string): string {
+    const formatted = [];
+    for (let i = 0; i < unformatted.length; i++) {
+        const c = unformatted[i]!;
+        if (
+            (c === " " && formatted.length === 0) ||
+            (c === " " &&
+                (unformatted[i + 1] === " " ||
+                    unformatted[i + 1] === undefined))
+        ) {
+            continue;
+        }
+        formatted.push(c);
+    }
+    return formatted.join("");
 }
 
 export function extractEnclosed(
@@ -194,4 +211,29 @@ export function extractEnclosed(
     }
 
     return [extracted, rest];
+}
+
+export function extractDelimitedList(
+    input: string,
+    delimiter: string,
+    terminator: string,
+): [string[] | null, string] {
+    const result = [];
+    var rest = input;
+
+    while (true) {
+        var [extracted, rest] = extractUntil(rest, delimiter);
+        if (extracted === null) {
+            var [last, rest] = extractUntil(rest, terminator);
+            if (last === null) {
+                return [null, input];
+            }
+            result.push(last);
+            break;
+        }
+
+        result.push(extracted);
+    }
+
+    return [result, rest];
 }
