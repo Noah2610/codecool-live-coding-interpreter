@@ -119,23 +119,10 @@ function parseFunctionDefinition(
     }
     const { identifier, parameters } = result;
 
-    const body = [];
-
-    while (true) {
-        var [statement, rest] = parseStatement(rest);
-
-        if (statement === null) {
-            var [_ws, rest] = extractWhitespace(rest);
-            var [terminator, rest] = extractToken(rest, "und endet hier");
-            if (terminator === null) {
-                throw new Error(
-                    "Failed parsing functionDefinition body as statement",
-                );
-            }
-            break;
-        }
-
-        body.push(statement);
+    var [body, rest] = parseFunctionDefinitionBody(rest);
+    // TODO proper error handling
+    if (body === null) {
+        throw new Error("Failed to parse functionDefinition body");
     }
 
     const s: Statement = {
@@ -145,4 +132,28 @@ function parseFunctionDefinition(
         body,
     };
     return [s, rest];
+}
+
+function parseFunctionDefinitionBody(
+    input: string,
+): [Statement[] | null, string] {
+    var rest = input;
+    const body = [];
+
+    while (true) {
+        var [statement, rest] = parseStatement(rest);
+
+        if (statement === null) {
+            var [_ws, rest] = extractWhitespace(rest);
+            var [terminator, rest] = extractToken(rest, "und endet hier");
+            if (terminator === null) {
+                return [null, input];
+            }
+            break;
+        }
+
+        body.push(statement);
+    }
+
+    return [body, rest];
 }

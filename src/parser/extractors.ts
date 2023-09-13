@@ -312,5 +312,5 @@ export function extractFunctionDefinitionHeader(
         parameters.push(param);
     }
 
-    return [{ identifier, parameters }, rest]
+    return [{ identifier, parameters }, rest];
 }
