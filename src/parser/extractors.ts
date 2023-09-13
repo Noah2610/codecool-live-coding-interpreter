@@ -138,55 +138,26 @@ export function extractIdentifierUntil(
     input: string,
     terminator: string,
 ): [string | null, string] {
-    // TODO: alternative approach
-    // const terminatorWithWs = " " + terminator;
     var [_ws, rest] = extractWhitespace(input);
-    let skipUntil: number | null = null;
-    return extractWhile1(rest, (chr, i) => {
-        if (skipUntil !== null) {
-            if (i < skipUntil) {
-                return "skip";
-            }
+    var [extracted, rest] = extractWhile1(rest, (chr, i) => {
+        if (rest.slice(i, i + terminator.length) === terminator) {
+            // skipUntil = i + terminator.length;
             return false;
         }
-        if (rest.slice(i, i + terminator.length) === terminator) {
-            skipUntil = i + terminator.length;
-            return "skip";
-        }
+        // TODO: shouldn't be extractor's responsibility to format the identifier;
+        //       create separate util function to format identifier name
         if (chr === " " && (rest[i + 1] === undefined || rest[i + 1] === " ")) {
             return "skip";
         }
         return true;
     });
 
-    // var rest = input;
-    // let extracted = "";
+    if (extracted === null) return [null, input];
 
-    // var ws: string | null = "";
-    // var [_ws, rest] = extractWhitespace(rest);
+    var [extractedTerminator, rest] = extractToken(rest, terminator);
+    if (extractedTerminator === null) return [null, input];
 
-    // while (true) {
-    //     var [word, rest] = extractWhile1(rest, (chr) => chr !== " ");
-    //     if (word === null) {
-    //         return [null, input];
-    //     }
-
-    //     if (word === terminator) {
-    //         break;
-    //     }
-
-    //     if (ws.length > 0) {
-    //         extracted += " ";
-    //     }
-    //     extracted += word;
-
-    //     var [ws, rest] = extractWhitespace1(rest);
-    //     if (ws === null) {
-    //         return [null, input];
-    //     }
-    // }
-
-    // return [extracted, rest];
+    return [extracted, rest];
 }
 
 export function extractEnclosed(

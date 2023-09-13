@@ -57,4 +57,11 @@ describe("extractors", () => {
             " something",
         ]);
     });
+
+    it("doesn't extract identifier with missing terminator (extractIdentifierUntil)", () => {
+        expect(extractIdentifierUntil("Meine Variable", "!")).toEqual([
+            null,
+            "Meine Variable",
+        ]);
+    });
 });
