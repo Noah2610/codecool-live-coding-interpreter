@@ -9,6 +9,7 @@ import {
     extractDelimitedList,
     formatIdentifier,
     extractFunctionDefinitionHeader,
+    extractIdentifierUntil,
 } from "./extractors";
 
 export type ExpressionStatement = {
@@ -81,7 +82,7 @@ function parseVariableDefinitionStatement(
         return [null, rest];
     }
 
-    var [identifier, rest] = extractUntil(rest, " ist");
+    var [identifier, rest] = extractIdentifierUntil(rest, " ist");
     if (identifier === null) {
         return [null, input];
     }
