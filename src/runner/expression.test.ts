@@ -162,4 +162,29 @@ describe("runner", () => {
 
         expect(() => runExpression(exp, context)).toThrow();
     });
+
+    it("runs functionCall with return value", () => {
+        context.setFunction({
+            identifier: "Stimmt's?",
+            type: "functionDefinition",
+            parameters: [],
+            body: [
+                {
+                    type: "return",
+                    value: {
+                        type: "boolean",
+                        value: true,
+                    },
+                },
+            ],
+        });
+
+        const result = runExpression({
+            type: "functionCall",
+            identifier: "Stimmt's?",
+            parameters: [],
+        }, context);
+
+        expect(result).toEqual({ type: "boolean", value: true });
+    });
 });
