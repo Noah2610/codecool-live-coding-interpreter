@@ -36,7 +36,7 @@ describe("run statements", () => {
     });
 
     it("runs a functionDefinition statement", () => {
-        const result = runStatement(
+        runStatement(
             {
                 type: "functionDefinition",
                 identifier: "Ausführen",
@@ -50,7 +50,13 @@ describe("run statements", () => {
             },
             context,
         );
-        // TODO check if function is saved to context
-        expect(false).toBeTruthy();
+
+        const func = context.getFunction("Ausführen")!;
+        expect(func).toBeTruthy();
+        expect(func.identifier).toBe("Ausführen");
+        expect(func.parameters).toEqual([]);
+        expect(func.body).toEqual([
+            { type: "expression", value: { type: "boolean", value: true } },
+        ]);
     });
 });

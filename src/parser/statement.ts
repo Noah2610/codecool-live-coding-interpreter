@@ -146,10 +146,10 @@ function parseFunctionDefinitionHeader(
 
     const parameters: string[] = [];
 
-    var [identifier, rest] = extractUntil(rest, " kriegt ");
+    var [identifier, rest] = extractIdentifierUntil(rest, " kriegt ");
 
     if (identifier === null) {
-        var [identifier, rest] = extractUntil(rest, " macht");
+        var [identifier, rest] = extractIdentifierUntil(rest, " macht");
         if (identifier === null) {
             return [
                 {

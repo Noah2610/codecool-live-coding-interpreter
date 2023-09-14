@@ -19,7 +19,8 @@ export function runStatement(
             return null;
         }
         case "functionDefinition": {
-            throw new Error("unimplemented");
+            context.setFunction(statement);
+            return null;
         }
         default: {
             expectNever(statement);
