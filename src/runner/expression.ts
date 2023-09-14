@@ -115,8 +115,10 @@ function runFunctionCallExpression(
 
     for (const statement of func.body) {
         const result = runStatement(statement, context);
-        // TODO return value
+        if (result && "isReturn" in result) {
+            return result.value;
+        }
     }
 
-    return { type: "boolean", value: true };
+    return { type: "null" };
 }

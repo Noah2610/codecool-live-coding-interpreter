@@ -4,10 +4,15 @@ import { Statement } from "../parser/statement";
 import { Context } from "./context";
 import { runExpression } from "./expression";
 
+type StatementReturn = {
+    isReturn: true;
+    value: PrimitiveExpression;
+};
+
 export function runStatement(
     statement: Statement,
     context: Context,
-): PrimitiveExpression | null {
+): PrimitiveExpression | StatementReturn | null {
     switch (statement.type) {
         case "expression": {
             return runExpression(statement.value, context);
@@ -23,7 +28,10 @@ export function runStatement(
             return null;
         }
         case "return": {
-            throw new Error("Unimplemented");
+            return {
+                isReturn: true,
+                value: runExpression(statement.value, context),
+            };
         }
         default: {
             expectNever(statement);

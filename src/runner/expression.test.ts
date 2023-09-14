@@ -165,15 +165,15 @@ describe("runner", () => {
 
     it("runs functionCall with return value", () => {
         context.setFunction({
-            identifier: "Stimmt's?",
+            identifier: "Gib Hallo",
             type: "functionDefinition",
             parameters: [],
             body: [
                 {
                     type: "return",
                     value: {
-                        type: "boolean",
-                        value: true,
+                        type: "string",
+                        value: "Hallo Welt",
                     },
                 },
             ],
@@ -181,10 +181,10 @@ describe("runner", () => {
 
         const result = runExpression({
             type: "functionCall",
-            identifier: "Stimmt's?",
+            identifier: "Gib Hallo",
             parameters: [],
         }, context);
 
-        expect(result).toEqual({ type: "boolean", value: true });
+        expect(result).toEqual({ type: "string", value: "Hallo Welt" });
     });
 });
