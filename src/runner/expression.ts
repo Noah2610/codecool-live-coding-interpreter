@@ -1,10 +1,13 @@
 import { expectNever } from "ts-expect";
 import {
     Expression,
+    FunctionCallExpression,
     OperationExpression,
     PrimitiveExpression,
+    VariableReferenceExpression,
 } from "../parser/expression";
 import { Context } from "./context";
+import { runStatement } from "./statement";
 
 export function runExpression(
     expression: Expression,
@@ -24,15 +27,10 @@ export function runExpression(
             return runOperationExpression(expression, context);
         }
         case "variableReference": {
-            const identifier = expression.identifier;
-            const value = context.getVariable(identifier);
-            if (value === null) {
-                throw new Error(`[run variableReference] Variable with name "${identifier}" does not exist`);
-            }
-            return value;
+            return runVariableReferenceExpression(expression, context);
         }
         case "functionCall": {
-            throw new Error("unimplemented");
+            return runFunctionCallExpression(expression, context);
         }
         default: {
             expectNever(expression);
@@ -82,4 +80,46 @@ function runOperationExpression(
         type: "number",
         value: result,
     };
+}
+
+function runVariableReferenceExpression(
+    expression: VariableReferenceExpression,
+    context: Context,
+): PrimitiveExpression {
+    const identifier = expression.identifier;
+    const value = context.getVariable(identifier);
+    if (value === null) {
+        throw new Error(
+            `Attempted to reference undefined variable: "${identifier}"`,
+        );
+    }
+    return value;
+}
+
+function runFunctionCallExpression(
+    expression: FunctionCallExpression,
+    context: Context,
+): PrimitiveExpression {
+    const { identifier, parameters } = expression;
+    const func = context.getFunction(identifier);
+    if (func === null) {
+        throw new Error(
+            `Attempted to call undefined function: "${identifier}"`,
+        );
+    }
+
+    if (parameters.length !== func.parameters.length) {
+        throw new Error(
+            `Function "${identifier}" expects ${func.parameters.length} parameters, but received ${parameters.length} parameters`,
+        );
+    }
+
+    // TODO set parameter variables for function call
+
+    for (const statement of func.body) {
+        const result = runStatement(statement, context);
+        // TODO return value
+    }
+
+    return { type: "boolean", value: true };
 }
