@@ -24,6 +24,8 @@ die Nummer Sechs ist 6!
 das Resultat der Addition von zwei Zahlen ist
     die Summe von /Nummer Fünf/ und /Nummer Sechs/!
 
+die Summe von 1, 2, 3 und 4
+
 # IF
 stimmt, dass CONDITION?
     BLOCK
@@ -40,7 +42,7 @@ nicht 10 größer als 5
 die aussage ist 10 gleich 5
 
 # OPERATION
-sie Summe von die Differenz von 10 und 20 und 30
+die Summe von die Differenz von 10 und 20 und 30
 
 die Summe von 10 und 20!
 das Resultat ist
@@ -70,9 +72,27 @@ BLOCK-
 pass wieder auf
 
 # FUNCTION-DEFINITION
-folgende FUNCTION-NAME kriegt PARAM und PARAM beginnt hier
-endet hier
+die Funktion FUNCTION-NAME kriegt PARAM, PARAM und PARAM und macht
+und endet hier!
+
+die Funktion mehrere Parameter kriegt eins, zwei und drei und macht
+und endet hier!
+
+führe mehrere Parameter mit 1, 2 und 3 aus!
+
+die Funktion Grüßen kriegt Name und macht
+    zeig die Summe von "Hallo " und /Name/ an!
+und endet hier!
+
+führe Grüßen mit "Ferdinand" aus!
+
+die Funktion Berechnen macht
+    das Resultat ist die Summe von 10 und 20!
+    gib /Resultat/ zurück!
+und endet hier!
+
+führe Berechnen aus!
 
 # FUNCTION-CALL
-mach FUNCTION-NAME mit VALUE, VALUE und VALUE!
+führe FUNCTION-NAME mit VALUE, VALUE und VALUE aus!
 ```
