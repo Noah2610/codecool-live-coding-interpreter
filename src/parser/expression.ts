@@ -2,6 +2,7 @@ import {
     extractDelimitedList,
     extractEnclosed,
     extractIdentifierUntil,
+    extractList,
     extractNumber,
     extractOperator,
     extractToken,
@@ -184,13 +185,12 @@ function parseVariableReferenceExpression(
 function parseFunctionCallExpression(
     input: string,
 ): [FunctionCallExpression | null, string] {
-    // führe Eine Berechnung aus
-    // führe Eine Berechnung mit 10, 20 und 30 aus
+    // TODO: proper error handling
 
     var [token, rest] = extractToken(input, "führe");
     if (token === null) return [null, input];
 
-    const parameters: string[] = [];
+    const parameters: Expression[] = [];
 
     var [identifier, rest] = extractIdentifierUntil(rest, " mit ");
 
@@ -202,10 +202,31 @@ function parseFunctionCallExpression(
             );
         }
     } else {
-        var [extractedParams, rest] = extractDelimitedList(rest, ",", " und");
-        // TODO
+        var [params, rest] = extractList(rest, " aus");
+        if (params === null) {
+            throw new Error(
+                "Failed to parse functionCall: expected parameters",
+            );
+        }
+
+        for (const param of params) {
+            const [expr, exprRest] = parseExpression(param);
+            if (expr === null || exprRest.trim().length > 0) {
+                throw new Error(
+                    `Failed to parse functionCall parameter as expression: "${param}"`,
+                );
+            }
+
+            parameters.push(expr);
+        }
     }
 
-    return null as unknown as any;
-    // return [{ identifier, parameters }, rest];
+    return [
+        {
+            type: "functionCall",
+            identifier,
+            parameters,
+        },
+        rest,
+    ];
 }
