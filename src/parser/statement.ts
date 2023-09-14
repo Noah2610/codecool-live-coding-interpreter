@@ -8,8 +8,8 @@ import {
     extractWhitespace1,
     extractDelimitedList,
     formatIdentifier,
-    extractFunctionDefinitionHeader,
     extractIdentifierUntil,
+    extractList,
 } from "./extractors";
 
 export type ExpressionStatement = {
@@ -110,7 +110,7 @@ function parseVariableDefinitionStatement(
 function parseFunctionDefinition(
     input: string,
 ): [FunctionDefinitionStatement | null, string] {
-    var [result, rest] = extractFunctionDefinitionHeader(input);
+    var [result, rest] = parseFunctionDefinitionHeader(input);
     if (result === null) {
         return [null, input];
     }
@@ -133,6 +133,47 @@ function parseFunctionDefinition(
         body,
     };
     return [s, rest];
+}
+
+function parseFunctionDefinitionHeader(
+    input: string,
+): [
+    { identifier: string; parameters: string[] } | { error: Error } | null,
+    string,
+] {
+    var [token, rest] = extractToken(input, "die Funktion");
+    if (token === null) return [null, input];
+
+    const parameters: string[] = [];
+
+    var [identifier, rest] = extractUntil(rest, " kriegt ");
+
+    if (identifier === null) {
+        var [identifier, rest] = extractUntil(rest, " macht");
+        if (identifier === null) {
+            return [
+                {
+                    error: new Error(
+                        "Failed to parse functionDefinition: expected identifier",
+                    ),
+                },
+                input,
+            ];
+        }
+    } else {
+        var [params, rest] = extractList(rest, " und macht");
+        if (params === null) {
+            return [
+                {
+                    error: new Error("Failed to parse functionDefinition parameters"),
+                },
+                input,
+            ];
+        }
+        parameters.push(...params.map(formatIdentifier));
+    }
+
+    return [{ identifier, parameters }, rest];
 }
 
 function parseFunctionDefinitionBody(

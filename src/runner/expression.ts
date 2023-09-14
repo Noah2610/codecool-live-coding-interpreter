@@ -31,6 +31,9 @@ export function runExpression(
             }
             return value;
         }
+        case "functionCall": {
+            throw new Error("unimplemented");
+        }
         default: {
             expectNever(expression);
         }

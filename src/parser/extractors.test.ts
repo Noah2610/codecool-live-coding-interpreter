@@ -8,6 +8,7 @@ import {
     extractWhitespace1,
     formatIdentifier,
     extractIdentifierUntil,
+    extractList,
 } from "./extractors";
 
 describe("extractors", () => {
@@ -47,14 +48,8 @@ describe("extractors", () => {
     });
 
     it("extracts until terminator (extractUntil)", () => {
-        expect(extractUntil("Hallo Welt!", "!")).toEqual([
-            "Hallo Welt",
-            "",
-        ]);
-        expect(extractUntil("Hallo Welt", "!")).toEqual([
-            null,
-            "Hallo Welt",
-        ]);
+        expect(extractUntil("Hallo Welt!", "!")).toEqual(["Hallo Welt", ""]);
+        expect(extractUntil("Hallo Welt", "!")).toEqual([null, "Hallo Welt"]);
     });
 
     it("formats identifier", () => {
@@ -72,10 +67,9 @@ describe("extractors", () => {
             "Dieser Wert",
             " 123",
         ]);
-        expect(extractIdentifierUntil("  Mein   Etwas   ist something", " ist")).toEqual([
-            "Mein Etwas",
-            " something",
-        ]);
+        expect(
+            extractIdentifierUntil("  Mein   Etwas   ist something", " ist"),
+        ).toEqual(["Mein Etwas", " something"]);
     });
 
     it("doesn't extract identifier with missing terminator (extractIdentifierUntil)", () => {
@@ -85,13 +79,53 @@ describe("extractors", () => {
         ]);
     });
 
-    it("extracts comma-delimited list (extractDelimitedList with \",\")", () => {
-        const extracted = extractDelimitedList("hello, world, comma-delimited list END", ",", " END");
-        expect(extracted).toEqual([["hello", "world", "comma-delimited list"], ""]);
+    it('extracts comma-delimited list (extractDelimitedList with ",")', () => {
+        const extracted = extractDelimitedList(
+            "hello, world, comma-delimited list END",
+            ",",
+            " END",
+        );
+        expect(extracted).toEqual([
+            ["hello", "world", "comma-delimited list"],
+            "",
+        ]);
     });
 
-    it("extracts word-delimited list (extractDelimitedList with \"und\")", () => {
-        const extracted = extractDelimitedList("hallo und welt END", " und ", " END");
+    it('extracts word-delimited list (extractDelimitedList with "und")', () => {
+        const extracted = extractDelimitedList(
+            "hallo und welt END",
+            " und ",
+            " END",
+        );
         expect(extracted).toEqual([["hallo", "welt"], ""]);
+    });
+
+    it("extracts lists", () => {
+        expect(extractList("hallo END", " END")).toEqual([["hallo"], ""]);
+        expect(extractList("hallo und Welt END", " END")).toEqual([
+            ["hallo", "Welt"],
+            "",
+        ]);
+        expect(extractList("hallo, tolle und Welt END", " END")).toEqual([
+            ["hallo", "tolle", "Welt"],
+            "",
+        ]);
+    });
+
+    it("doesn't extract invalid lists", () => {
+        expect(extractList("hallo, Welt END", " END")).toEqual([
+            null,
+            "hallo, Welt END",
+        ]);
+        expect(extractList("hallo und tolle und Welt END", " END")).toEqual([
+            null,
+            "hallo und tolle und Welt END",
+        ]);
+    });
+
+    it('extracts list with terminator including "und"', () => {
+        expect(
+            extractList("hallo, tolle und Welt und ende", " und ende"),
+        ).toEqual([["hallo", "tolle", "Welt"], ""]);
     });
 });

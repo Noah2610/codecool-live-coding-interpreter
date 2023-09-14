@@ -204,45 +204,8 @@ function parseFunctionCallExpression(
     } else {
         var [extractedParams, rest] = extractDelimitedList(rest, ",", " und");
         // TODO
-        if (extractedParams === null) {
-            extractToken(rest, "aus");
-        }
-        parameters.push(...extractedParams.map(formatIdentifier));
-
-        const hasFinalParam = parameters.length > 1;
-
-        var [_ws, rest] = extractWhitespace(rest);
-        var [token, rest] = extractToken(rest, "macht");
-
-        if (token !== null) {
-            if (hasFinalParam) {
-                return [
-                    {
-                        error: new Error(
-                            'Failed to parse functionDefinition: expected final parameter after "und"',
-                        ),
-                    },
-                    rest,
-                ];
-            } else {
-                return [{ identifier, parameters }, rest];
-            }
-        }
-
-        var [param, rest] = extractIdentifierUntil(rest, "und macht");
-        if (param === null) {
-            return [
-                {
-                    error: new Error(
-                        'Failed to parse functionDefinition: expected final parameter before "macht"',
-                    ),
-                },
-                rest,
-            ];
-        }
-
-        parameters.push(param);
     }
 
-    return [{ identifier, parameters }, rest];
+    return null as unknown as any;
+    // return [{ identifier, parameters }, rest];
 }

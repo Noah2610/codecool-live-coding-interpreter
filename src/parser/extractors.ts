@@ -137,9 +137,16 @@ export function extractNumber(input: string): [number | null, string] {
 export function extractUntil(
     input: string,
     terminator: string,
+    exclude?: string[],
 ): [string | null, string] {
     var [_ws, rest] = extractWhitespace(input);
     var [extracted, rest] = extractWhile1(rest, (_chr, i) => {
+        if (
+            exclude &&
+            exclude.some((ex) => rest.slice(i, i + ex.length) === ex)
+        ) {
+            return false;
+        }
         return rest.slice(i, i + terminator.length) !== terminator;
     });
 
@@ -154,8 +161,9 @@ export function extractUntil(
 export function extractIdentifierUntil(
     input: string,
     terminator: string,
+    exclude?: string[],
 ): [string | null, string] {
-    const [extracted, rest] = extractUntil(input, terminator);
+    const [extracted, rest] = extractUntil(input, terminator, exclude);
     if (extracted === null) return [null, input];
     return [formatIdentifier(extracted), rest];
 }
@@ -241,156 +249,59 @@ export function extractDelimitedList(
 // TODO
 /**
  * Extracts list like:
+ * "eins"
+ * "eins und zwei"
  * "eins, zwei und drei"
  */
-// export function extractList(
-//     input: string,
-//     terminator: string,
-// ): [string[] | null, string] {
-//     // terminator: und macht
-//     // etwas und macht -> etwas
-//     // eins und zwei und macht -> eins und zwei
-//     // eins, zwei und drei und macht -> eins, zwei und drei
-
-//     const list: string[] = [];
-
-//     var [listRaw, restEnd] = extractUntil(input, terminator);
-//     if (listRaw === null) {
-//         return [null, input]
-//     }
-//     // etwas
-//     // eins und zwei
-//     // eins, zwei und drei
-
-//     var [items, rest] = extractDelimitedList(listRaw, ",", "und");
-//     if (items === null) {
-//         var [term, rest] = extractToken(rest, terminator);
-//         if (term === null) {
-//             return [null, input];
-//         }
-
-//         return [[listRaw], restEnd];
-//     }
-//     list.push(...items.map(formatIdentifier));
-//     // eins und zwei -> eins - rest: und zwei
-//     // eins, zwei und drei -> eins, zwei - rest: und drei
-
-//     const hasFinalParam = items.length > 1;
-
-//     var [_ws, rest] = extractWhitespace(rest);
-//     var [token, rest] = extractToken(rest, "und");
-
-//     if (token === null && list.length === 1) {
-
-//     }
-
-//     // ---
-//     var [_ws, rest] = extractWhitespace(rest);
-//     var [token, rest] = extractToken(rest, terminator);
-
-//     if (token !== null) {
-//         if (hasFinalParam) {
-//             return [
-//                 {
-//                     error: new Error(
-//                         'Failed to parse functionDefinition: expected final parameter after "und"',
-//                     ),
-//                 },
-//                 rest,
-//             ];
-//         } else {
-//             return [{ identifier, parameters }, rest];
-//         }
-//     }
-
-//     var [param, rest] = extractIdentifierUntil(rest, "und macht");
-//     if (param === null) {
-//         return [
-//             {
-//                 error: new Error(
-//                     'Failed to parse functionDefinition: expected final parameter before "macht"',
-//                 ),
-//             },
-//             rest,
-//         ];
-//     }
-
-//     parameters.push(param);
-// }
-
-export function extractFunctionDefinitionHeader(
+export function extractList(
     input: string,
-): [
-    { identifier: string; parameters: string[] } | { error: Error } | null,
-    string,
-] {
-    var [token, rest] = extractToken(input, "die Funktion");
-    if (token === null) return [null, input];
-
-    const parameters: string[] = [];
-
-    var [identifier, rest] = extractIdentifierUntil(rest, " kriegt ");
-
-    if (identifier === null) {
-        var [identifier, rest] = extractIdentifierUntil(rest, " macht");
-        if (identifier === null) {
-            return [
-                {
-                    error: new Error(
-                        "Failed to parse functionDefinition: expected identifier",
-                    ),
-                },
-                input,
-            ];
-        }
-    } else {
-        var [extractedParams, rest] = extractDelimitedList(rest, ",", " und");
-        if (extractedParams === null) {
-            return [
-                {
-                    error: new Error(
-                        'Failed to parse functionDefinition parameters: expected "und"',
-                    ),
-                },
-                input,
-            ];
-        }
-        parameters.push(...extractedParams.map(formatIdentifier));
-
-        const hasFinalParam = parameters.length > 1;
-
-        var [_ws, rest] = extractWhitespace(rest);
-        var [token, rest] = extractToken(rest, "macht");
-
-        if (token !== null) {
-            if (hasFinalParam) {
-                return [
-                    {
-                        error: new Error(
-                            'Failed to parse functionDefinition: expected final parameter after "und"',
-                        ),
-                    },
-                    rest,
-                ];
-            } else {
-                return [{ identifier, parameters }, rest];
-            }
+    terminator: string,
+): [string[] | null, string] {
+    function extractListMultiple(
+        input: string,
+        terminator: string,
+    ): [string[] | null, string] {
+        var [items, rest] = extractDelimitedList(input, ",", " und ");
+        if (items === null || items.length < 2) {
+            return [null, input];
         }
 
-        var [param, rest] = extractIdentifierUntil(rest, "und macht");
-        if (param === null) {
-            return [
-                {
-                    error: new Error(
-                        'Failed to parse functionDefinition: expected final parameter before "macht"',
-                    ),
-                },
-                rest,
-            ];
-        }
+        var [lastItem, rest] = extractUntil(rest, terminator, [","]);
+        if (lastItem === null) return [null, input];
 
-        parameters.push(param);
+        return [[...items, lastItem], rest];
     }
 
-    return [{ identifier, parameters }, rest];
+    function extractListTwo(
+        input: string,
+        terminator: string,
+    ): [string[] | null, string] {
+        var [first, rest] = extractUntil(input, " und ", [","]);
+        if (first === null) return [null, input];
+
+        var [second, rest] = extractUntil(rest, terminator, [",", " und"]);
+        if (second === null) return [null, input];
+
+        return [[first, second], rest];
+    }
+
+    function extractListOne(
+        input: string,
+        terminator: string,
+    ): [string[] | null, string] {
+        var [item, rest] = extractUntil(input, terminator, [",", " und"]);
+        if (item === null) return [null, input];
+        return [[item], rest];
+    }
+
+    const multiple = extractListMultiple(input, terminator);
+    if (multiple[0] !== null) return multiple;
+
+    const two = extractListTwo(input, terminator);
+    if (two[0] !== null) return two;
+
+    const one = extractListOne(input, terminator);
+    if (one[0] !== null) return one;
+
+    return [null, input];
 }
