@@ -13,11 +13,13 @@ import {
 export type PrimitiveExpression =
     | NumberExpression
     | BooleanExpression
-    | StringExpression;
+    | StringExpression
+    | NullExpression;
 
 export type NumberExpression = { type: "number"; value: number };
 export type BooleanExpression = { type: "boolean"; value: boolean };
 export type StringExpression = { type: "string"; value: string };
+export type NullExpression = { type: "null" };
 export type OperationExpression = {
     type: "operation";
     op: "+" | "-" | "*" | "/";
@@ -35,9 +37,7 @@ export type FunctionCallExpression = {
 };
 
 export type Expression =
-    | NumberExpression
-    | BooleanExpression
-    | StringExpression
+    | PrimitiveExpression
     | OperationExpression
     | VariableReferenceExpression
     | FunctionCallExpression;
@@ -61,6 +61,11 @@ export function parseExpression(input: string): [Expression | null, string] {
     const str = parseStringExpression(input);
     if (str[0] !== null) {
         return str;
+    }
+
+    const nullExpr = parseNullExpression(input);
+    if (nullExpr[0] !== null) {
+        return nullExpr;
     }
 
     const variableRef = parseVariableReferenceExpression(input);
@@ -129,6 +134,12 @@ function parseStringExpression(
         return [null, input];
     }
     return [{ type: "string", value: str }, rest];
+}
+
+function parseNullExpression(input: string): [NullExpression | null, string] {
+    const [nullToken, rest] = extractToken(input, "nix");
+    if (nullToken === null) return [null, input];
+    return [{ type: "null" }, rest];
 }
 
 function parseOperationExpression(

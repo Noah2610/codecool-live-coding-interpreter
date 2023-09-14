@@ -170,4 +170,26 @@ describe("parse statements", () => {
         };
         expect(parsed).toEqual([expected, ""]);
     });
+
+    it("parses return statement with value", () => {
+        const parsed = parseStatement("gib wahr zurück!");
+        expect(parsed).toEqual([
+            {
+                type: "return",
+                value: { type: "boolean", value: true },
+            },
+            "",
+        ]);
+    });
+
+    it("parses return statement without value", () => {
+        const parsed = parseStatement("gib nix zurück!");
+        expect(parsed).toEqual([
+            {
+                type: "return",
+                value: { type: "null" },
+            },
+            "",
+        ]);
+    });
 });

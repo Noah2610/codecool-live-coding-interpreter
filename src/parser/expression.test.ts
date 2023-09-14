@@ -58,6 +58,11 @@ describe("parse expressions", () => {
         ]);
     });
 
+    it("parses null expression", () => {
+        const parsed = parseExpression("nix");
+        expect(parsed).toEqual([{ type: "null" }, ""]);
+    });
+
     it("parses plus operation", () => {
         const parsed = parseExpression("die Summe von 10 und 20");
         expect(parsed).toEqual([

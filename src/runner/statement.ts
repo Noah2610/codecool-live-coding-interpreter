@@ -22,6 +22,9 @@ export function runStatement(
             context.setFunction(statement);
             return null;
         }
+        case "return": {
+            throw new Error("Unimplemented");
+        }
         default: {
             expectNever(statement);
         }

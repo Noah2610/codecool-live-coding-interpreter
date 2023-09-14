@@ -14,13 +14,10 @@ export function runExpression(
     context: Context,
 ): PrimitiveExpression {
     switch (expression.type) {
-        case "boolean": {
-            return expression;
-        }
-        case "number": {
-            return expression;
-        }
-        case "string": {
+        case "boolean":
+        case "number":
+        case "string":
+        case "null": {
             return expression;
         }
         case "operation": {

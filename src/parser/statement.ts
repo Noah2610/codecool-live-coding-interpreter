@@ -1,12 +1,9 @@
 import { Expression, parseExpression } from "./expression";
 import {
-    extractUntil,
     extractOneOfToken,
     extractToken,
-    extractWhile1,
     extractWhitespace,
     extractWhitespace1,
-    extractDelimitedList,
     formatIdentifier,
     extractIdentifierUntil,
     extractList,
@@ -27,33 +24,45 @@ export type FunctionDefinitionStatement = {
     parameters: string[];
     body: Statement[];
 };
+export type ReturnStatement = {
+    type: "return";
+    value: Expression;
+};
 
 export type Statement =
     | ExpressionStatement
     | VariableDefinitionStatement
-    | FunctionDefinitionStatement;
+    | FunctionDefinitionStatement
+    | ReturnStatement;
 
 export function parseStatement(input: string): [Statement | null, string] {
     let statement: Statement | null = null;
 
     var [_ws, rest] = extractWhitespace(input);
 
-    var [variableDef, rest] = parseVariableDefinitionStatement(rest);
-    if (variableDef !== null) {
-        statement = variableDef;
+    var [exp, rest] = parseExpression(rest);
+    if (exp !== null) {
+        statement = { type: "expression", value: exp };
     }
 
     if (!statement) {
-        var [exp, rest] = parseExpression(rest);
-        if (exp !== null) {
-            statement = { type: "expression", value: exp };
+        var [variableDef, rest] = parseVariableDefinitionStatement(rest);
+        if (variableDef !== null) {
+            statement = variableDef;
         }
     }
 
     if (!statement) {
-        var [funcDef, rest] = parseFunctionDefinition(rest);
+        var [funcDef, rest] = parseFunctionDefinitionStatement(rest);
         if (funcDef !== null) {
             statement = funcDef;
+        }
+    }
+
+    if (!statement) {
+        var [returnStatement, rest] = parseReturnStatement(rest);
+        if (returnStatement !== null) {
+            statement = returnStatement;
         }
     }
 
@@ -107,7 +116,7 @@ function parseVariableDefinitionStatement(
     ];
 }
 
-function parseFunctionDefinition(
+function parseFunctionDefinitionStatement(
     input: string,
 ): [FunctionDefinitionStatement | null, string] {
     var [result, rest] = parseFunctionDefinitionHeader(input);
@@ -165,7 +174,9 @@ function parseFunctionDefinitionHeader(
         if (params === null) {
             return [
                 {
-                    error: new Error("Failed to parse functionDefinition parameters"),
+                    error: new Error(
+                        "Failed to parse functionDefinition parameters",
+                    ),
                 },
                 input,
             ];
@@ -198,4 +209,23 @@ function parseFunctionDefinitionBody(
     }
 
     return [body, rest];
+}
+
+function parseReturnStatement(input: string): [ReturnStatement | null, string] {
+    var [token, rest] = extractToken(input, "gib");
+    if (token === null) return [null, input];
+
+    var [ws, rest] = extractWhitespace1(rest);
+    if (ws === null) return [null, input];
+
+    var [expr, rest] = parseExpression(rest);
+    if (expr === null) return [null, input];
+
+    var [ws, rest] = extractWhitespace1(rest);
+    if (ws === null) return [null, input];
+
+    var [token, rest] = extractToken(rest, "zurück");
+    if (token === null) return [null, input];
+
+    return [{ type: "return", value: expr }, rest];
 }
