@@ -28,12 +28,17 @@ export type ReturnStatement = {
     type: "return";
     value: Expression;
 };
+export type PrintStatement = {
+    type: "print";
+    values: Expression[];
+};
 
 export type Statement =
     | ExpressionStatement
     | VariableDefinitionStatement
     | FunctionDefinitionStatement
-    | ReturnStatement;
+    | ReturnStatement
+    | PrintStatement;
 
 export function parseStatement(input: string): [Statement | null, string] {
     let statement: Statement | null = null;
@@ -63,6 +68,13 @@ export function parseStatement(input: string): [Statement | null, string] {
         var [returnStatement, rest] = parseReturnStatement(rest);
         if (returnStatement !== null) {
             statement = returnStatement;
+        }
+    }
+
+    if (!statement) {
+        var [print, rest] = parsePrintStatement(rest);
+        if (print !== null) {
+            statement = print;
         }
     }
 
@@ -228,4 +240,26 @@ function parseReturnStatement(input: string): [ReturnStatement | null, string] {
     if (token === null) return [null, input];
 
     return [{ type: "return", value: expr }, rest];
+}
+
+function parsePrintStatement(input: string): [PrintStatement | null, string] {
+    var [token, rest] = extractToken(input, "zeig");
+    if (token === null) return [null, input];
+
+    var [ws, rest] = extractWhitespace1(rest);
+    if (ws === null) return [null, input];
+
+    var [args, rest] = extractList(rest, " an");
+    if (args === null) return [null, rest];
+
+    const expressions: Expression[] = [];
+    for (const arg of args) {
+        const [expr, exprRest] = parseExpression(arg);
+        if (expr === null || exprRest.trim().length > 0) {
+            return [null, input];
+        }
+        expressions.push(expr);
+    }
+
+    return [{ type: "print", values: expressions }, rest];
 }

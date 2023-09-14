@@ -192,4 +192,32 @@ describe("parse statements", () => {
             "",
         ]);
     });
+
+    it("parses print statement", () => {
+        const parsed = parseStatement('zeig "Eine Zeichenkette" an!');
+        expect(parsed).toEqual([
+            {
+                type: "print",
+                values: [{ type: "string", value: "Eine Zeichenkette" }],
+            },
+            "",
+        ]);
+    });
+
+    it("parses print statement with multiple values", () => {
+        const parsed = parseStatement('zeig "Zeichenkette", wahr, 123, nix und falsch an!');
+        expect(parsed).toEqual([
+            {
+                type: "print",
+                values: [
+                    { type: "string", value: "Zeichenkette" },
+                    { type: "boolean", value: true },
+                    { type: "number", value: 123 },
+                    { type: "null" },
+                    { type: "boolean", value: false },
+                ],
+            },
+            "",
+        ]);
+    });
 });

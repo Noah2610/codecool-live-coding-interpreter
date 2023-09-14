@@ -59,4 +59,31 @@ describe("run statements", () => {
             { type: "expression", value: { type: "boolean", value: true } },
         ]);
     });
+
+    it("runs print statement", () => {
+        const origLog = console.log;
+        console.log = jest.fn();
+
+        runStatement(
+            {
+                type: "print",
+                values: [
+                    { type: "string", value: "Zeichenkette" },
+                    { type: "boolean", value: true },
+                    { type: "number", value: 123 },
+                    { type: "null" },
+                    { type: "boolean", value: false },
+                ],
+            },
+            context,
+        );
+
+        expect(console.log).toHaveBeenNthCalledWith(1, "Zeichenkette");
+        expect(console.log).toHaveBeenNthCalledWith(2, true);
+        expect(console.log).toHaveBeenNthCalledWith(3, 123);
+        expect(console.log).toHaveBeenNthCalledWith(4, null);
+        expect(console.log).toHaveBeenNthCalledWith(5, false);
+
+        console.log = origLog;
+    });
 });

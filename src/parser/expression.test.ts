@@ -6,6 +6,9 @@ describe("parse expressions", () => {
         expect(parsed).toEqual([{ type: "number", value: 123 }, ""]);
     });
 
+    // TODO: parsing floating-point numbers has issues with parsing lists
+    //       ex.: "1, 1,23, 2 und 3"
+    //       possible solution: make list parsing delimiter ", "
     it("parses floating point number expression", () => {
         const [exp, rest] = parseExpression("1,23");
         expect(exp).not.toBeNull();

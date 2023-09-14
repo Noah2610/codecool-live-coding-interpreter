@@ -33,6 +33,13 @@ export function runStatement(
                 value: runExpression(statement.value, context),
             };
         }
+        case "print": {
+            for (const expr of statement.values) {
+                const value = runExpression(expr, context);
+                console.log(value.type === "null" ? null : value.value);
+            }
+            return null;
+        }
         default: {
             expectNever(statement);
         }
