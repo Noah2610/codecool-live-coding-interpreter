@@ -1,4 +1,4 @@
-import { ConditionExpression, Expression, parseExpression } from "./expression";
+import { Expression, parseExpression } from "./expression";
 import {
     extractOneOfToken,
     extractToken,
@@ -40,7 +40,7 @@ export type ConditionStatement = {
 };
 
 type Conditional = {
-    condition: ConditionExpression;
+    condition: Expression;
     body: Statement[];
 };
 
