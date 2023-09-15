@@ -306,13 +306,13 @@ export function extractList(
     return [null, input];
 }
 
+type Extractors = Readonly<Array<Extractor>>;
 type Extractor = (input: string) => [any, string];
-
 type ExtractorReturnTypes<T extends Readonly<Array<(...args: any) => any>>> = {
     [I in keyof T]: NonNullable<ReturnType<T[I]>[0]>;
 };
 
-export function extractSequence<T extends Readonly<Array<Extractor>>, R>(
+export function extractSequence<T extends Extractors, R>(
     input: string,
     extractors: T,
     converter: (results: ExtractorReturnTypes<T>) => R,

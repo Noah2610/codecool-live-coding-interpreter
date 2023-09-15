@@ -1,5 +1,4 @@
 import {
-    extractDelimitedList,
     extractEnclosed,
     extractIdentifierUntil,
     extractList,
@@ -7,7 +6,6 @@ import {
     extractOperator,
     extractSequence,
     extractToken,
-    extractTokens,
     extractWhitespace1,
 } from "./extractors";
 
@@ -75,48 +73,9 @@ export function parseExpression(input: string): [Expression | null, string] {
     // (wahr gleich wahr) und (wahr gleich wahr)
     // ((die Summe von 1 und 2) gleich (die Summe von 2 und 1)) und ()
 
-    // const logical = parseLogicalOperationExpression(input);
     const logical = parseLogicalLayer(input);
     if (logical[0] !== null) {
         return logical;
-    }
-
-    return [null, input];
-    // --- TODO
-
-    // const operation = parseOperationExpression(input);
-    // if (operation[0] !== null) {
-    //     return operation;
-    // }
-
-    const num = parseNumberExpression(input);
-    if (num[0] !== null) {
-        return num;
-    }
-
-    const bool = parseBooleanExpression(input);
-    if (bool[0] !== null) {
-        return bool;
-    }
-
-    const str = parseStringExpression(input);
-    if (str[0] !== null) {
-        return str;
-    }
-
-    const nullExpr = parseNullExpression(input);
-    if (nullExpr[0] !== null) {
-        return nullExpr;
-    }
-
-    const variableRef = parseVariableReferenceExpression(input);
-    if (variableRef[0] !== null) {
-        return variableRef;
-    }
-
-    const functionCall = parseFunctionCallExpression(input);
-    if (functionCall[0] !== null) {
-        return functionCall;
     }
 
     return [null, input];
