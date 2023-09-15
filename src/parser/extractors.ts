@@ -305,3 +305,30 @@ export function extractList(
 
     return [null, input];
 }
+
+type Extractor = (input: string) => [any, string];
+
+type ExtractorReturnTypes<T extends Readonly<Array<(...args: any) => any>>> = {
+    [I in keyof T]: NonNullable<ReturnType<T[I]>[0]>;
+};
+
+export function extractSequence<T extends Readonly<Array<Extractor>>, R>(
+    input: string,
+    extractors: T,
+    converter: (results: ExtractorReturnTypes<T>) => R,
+): [R | null, string] {
+    let rest = input;
+    const results: any[] = [];
+
+    for (const extractor of extractors) {
+        const [result, newRest] = extractor(rest);
+        if (result === null) {
+            return [null, input];
+        }
+
+        rest = newRest;
+        results.push(result);
+    }
+
+    return [converter(results as ExtractorReturnTypes<T>), rest];
+}

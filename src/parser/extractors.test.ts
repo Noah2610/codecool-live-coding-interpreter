@@ -9,6 +9,8 @@ import {
     formatIdentifier,
     extractIdentifierUntil,
     extractList,
+    extractSequence,
+    extractNumber,
 } from "./extractors";
 
 describe("extractors", () => {
@@ -127,5 +129,42 @@ describe("extractors", () => {
         expect(
             extractList("hallo, tolle und Welt und ende", " und ende"),
         ).toEqual([["hallo", "tolle", "Welt"], ""]);
+    });
+
+    it("extracts sequence (extractSequence)", () => {
+        const [extracted, rest] = extractSequence(
+            "5 10 a",
+            [
+                extractNumber,
+                extractWhitespace1,
+                extractNumber,
+            ] as const,
+            ([a, _, b]) => [a, b],
+        );
+        expect(extracted).toEqual([5, 10]);
+        expect(rest).toBe(" a");
+    });
+
+    it("can't extract sequence (extractSequence)", () => {
+        const [extracted, rest] = extractSequence(
+            "NaN",
+            [extractNumber] as const,
+            (_) => true,
+        );
+        expect(extracted).toBeNull();
+        expect(rest).toBe("NaN");
+    });
+
+    it("can't extract sequence, failing at second extractor (extractSequence)", () => {
+        const [extracted, rest] = extractSequence(
+            "hello world",
+            [
+                (s) => extractToken(s, "hello"),
+                (s) => extractToken(s, "world"),
+            ] as const,
+            (_) => true,
+        );
+        expect(extracted).toBeNull();
+        expect(rest).toBe("hello world");
     });
 });
