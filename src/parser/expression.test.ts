@@ -157,7 +157,9 @@ describe("parse expressions", () => {
     });
 
     it("parses functionCall expression with two parameters", () => {
-        const parsed = parseExpression("führe Addiere die Zahlen mit 5 und 10 aus");
+        const parsed = parseExpression(
+            "führe Addiere die Zahlen mit 5 und 10 aus",
+        );
         expect(parsed).toEqual([
             {
                 type: "functionCall",
@@ -182,6 +184,108 @@ describe("parse expressions", () => {
                     { type: "number", value: 2 },
                     { type: "number", value: 3 },
                 ],
+            },
+            "",
+        ]);
+    });
+
+    it("parses is existance expression", () => {
+        const parsed = parseExpression("dass, wahr ist");
+        expect(parsed).toEqual([
+            {
+                type: "existance",
+                op: "is",
+                value: { type: "boolean", value: true },
+            },
+            "",
+        ]);
+    });
+
+    it("parses not existance expression", () => {
+        const parsed = parseExpression("dass, wahr nicht ist");
+        expect(parsed).toEqual([
+            {
+                type: "existance",
+                op: "not",
+                value: { type: "boolean", value: true },
+            },
+            "",
+        ]);
+    });
+
+    it("parses equality comparison expression", () => {
+        const parsed = parseExpression("dass, wahr gleich falsch ist");
+        expect(parsed).toEqual([
+            {
+                type: "comparison",
+                op: "eq",
+                lhs: { type: "boolean", value: true },
+                rhs: { type: "boolean", value: false },
+            },
+            "",
+        ]);
+    });
+
+    it("parses inequality comparison expression", () => {
+        const parsed = parseExpression("dass, wahr nicht gleich falsch ist");
+        expect(parsed).toEqual([
+            {
+                type: "comparison",
+                op: "neq",
+                lhs: { type: "boolean", value: true },
+                rhs: { type: "boolean", value: false },
+            },
+            "",
+        ]);
+    });
+
+    it("parses greater than comparison expression", () => {
+        const parsed = parseExpression("dass, 10 größer als 5 ist");
+        expect(parsed).toEqual([
+            {
+                type: "comparison",
+                op: "gt",
+                lhs: { type: "number", value: 10 },
+                rhs: { type: "number", value: 5 },
+            },
+            "",
+        ]);
+    });
+
+    it("parses greater than equal comparison expression", () => {
+        const parsed = parseExpression("dass, 10 größer als oder gleich 5 ist");
+        expect(parsed).toEqual([
+            {
+                type: "comparison",
+                op: "gte",
+                lhs: { type: "number", value: 10 },
+                rhs: { type: "number", value: 5 },
+            },
+            "",
+        ]);
+    });
+
+    it("parses less than comparison expression", () => {
+        const parsed = parseExpression("dass, 5 kleiner als 10 ist");
+        expect(parsed).toEqual([
+            {
+                type: "comparison",
+                op: "lt",
+                lhs: { type: "number", value: 5 },
+                rhs: { type: "number", value: 10 },
+            },
+            "",
+        ]);
+    });
+
+    it("parses less than equal comparison expression", () => {
+        const parsed = parseExpression("dass, 5 kleiner als oder gleich 10 ist");
+        expect(parsed).toEqual([
+            {
+                type: "comparison",
+                op: "lte",
+                lhs: { type: "number", value: 5 },
+                rhs: { type: "number", value: 10 },
             },
             "",
         ]);

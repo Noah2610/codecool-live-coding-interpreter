@@ -10,12 +10,6 @@ import {
     extractWhitespace1,
 } from "./extractors";
 
-export type PrimitiveExpression =
-    | NumberExpression
-    | BooleanExpression
-    | StringExpression
-    | NullExpression;
-
 export type NumberExpression = { type: "number"; value: number };
 export type BooleanExpression = { type: "boolean"; value: boolean };
 export type StringExpression = { type: "string"; value: string };
@@ -23,6 +17,18 @@ export type NullExpression = { type: "null" };
 export type OperationExpression = {
     type: "operation";
     op: "+" | "-" | "*" | "/";
+    lhs: Expression;
+    rhs: Expression;
+};
+// TODO: find better name
+export type ExistanceExpression = {
+    type: "existance";
+    op: "is" | "not";
+    value: Expression;
+};
+export type ComparisonExpression = {
+    type: "comparison";
+    op: "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
     lhs: Expression;
     rhs: Expression;
 };
@@ -36,9 +42,18 @@ export type FunctionCallExpression = {
     parameters: Expression[];
 };
 
+export type PrimitiveExpression =
+    | NumberExpression
+    | BooleanExpression
+    | StringExpression
+    | NullExpression;
+
+export type ConditionExpression = ExistanceExpression | ComparisonExpression;
+
 export type Expression =
     | PrimitiveExpression
     | OperationExpression
+    | ConditionExpression
     | VariableReferenceExpression
     | FunctionCallExpression;
 
