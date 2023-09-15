@@ -1,4 +1,4 @@
-import { Expression, parseExpression } from "./expression";
+import { ConditionExpression, Expression, parseExpression } from "./expression";
 import {
     extractOneOfToken,
     extractToken,
@@ -32,13 +32,25 @@ export type PrintStatement = {
     type: "print";
     values: Expression[];
 };
+export type ConditionStatement = {
+    type: "condition";
+    if: Conditional;
+    elseIfs: Conditional[];
+    else: Statement[] | null;
+};
+
+type Conditional = {
+    condition: ConditionExpression;
+    body: Statement[];
+};
 
 export type Statement =
     | ExpressionStatement
     | VariableDefinitionStatement
     | FunctionDefinitionStatement
     | ReturnStatement
-    | PrintStatement;
+    | PrintStatement
+    | ConditionStatement;
 
 export function parseStatement(input: string): [Statement | null, string] {
     let statement: Statement | null = null;

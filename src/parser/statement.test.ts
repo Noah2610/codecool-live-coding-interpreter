@@ -205,7 +205,9 @@ describe("parse statements", () => {
     });
 
     it("parses print statement with multiple values", () => {
-        const parsed = parseStatement('zeig "Zeichenkette", wahr, 123, nix und falsch an!');
+        const parsed = parseStatement(
+            'zeig "Zeichenkette", wahr, 123, nix und falsch an!',
+        );
         expect(parsed).toEqual([
             {
                 type: "print",
@@ -215,6 +217,137 @@ describe("parse statements", () => {
                     { type: "number", value: 123 },
                     { type: "null" },
                     { type: "boolean", value: false },
+                ],
+            },
+            "",
+        ]);
+    });
+
+    it("parses condition statement", () => {
+        const parsed = parseStatement(`
+            stimmt, dass wahr ist?
+                wahr!
+            ?!`);
+        expect(parsed).toEqual([
+            {
+                type: "condition",
+                if: {
+                    condition: {
+                        type: "existance",
+                        op: "is",
+                        value: { type: "boolean", value: true },
+                    },
+                    body: [
+                        {
+                            type: "expression",
+                            value: { type: "boolean", value: true },
+                        },
+                    ],
+                },
+                elseIfs: [],
+                else: null,
+            },
+            "",
+        ]);
+    });
+
+    it("parses condition statement with else", () => {
+        const parsed = parseStatement(`
+            stimmt, dass wahr ist?
+                wahr!
+            oder nicht?
+                falsch!
+            ?!`);
+        expect(parsed).toEqual([
+            {
+                type: "condition",
+                if: {
+                    condition: {
+                        type: "existance",
+                        op: "is",
+                        value: { type: "boolean", value: true },
+                    },
+                    body: [
+                        {
+                            type: "expression",
+                            value: { type: "boolean", value: true },
+                        },
+                    ],
+                },
+                elseIfs: [],
+                else: [
+                    {
+                        type: "expression",
+                        value: { type: "boolean", value: false },
+                    },
+                ],
+            },
+            "",
+        ]);
+    });
+
+    it("parses condition statement with multiple else ifs and else", () => {
+        const parsed = parseStatement(`
+            stimmt, dass wahr ist?
+                wahr!
+            oder doch, dass 1 größer als 2 ist?
+                "eins"!
+            oder doch, dass 1 kleiner als oder gleich 2 ist?
+                "zwei"!
+            oder nicht?
+                falsch!
+            ?!`);
+        expect(parsed).toEqual([
+            {
+                type: "condition",
+                if: {
+                    condition: {
+                        type: "existance",
+                        op: "is",
+                        value: { type: "boolean", value: true },
+                    },
+                    body: [
+                        {
+                            type: "expression",
+                            value: { type: "boolean", value: true },
+                        },
+                    ],
+                },
+                elseIfs: [
+                    {
+                        condition: {
+                            type: "comparison",
+                            op: "gt",
+                            lhs: { type: "number", value: 1 },
+                            rhs: { type: "number", value: 2 },
+                        },
+                        body: [
+                            {
+                                type: "expression",
+                                value: { type: "string", value: "eins" },
+                            },
+                        ],
+                    },
+                    {
+                        condition: {
+                            type: "comparison",
+                            op: "lte",
+                            lhs: { type: "number", value: 1 },
+                            rhs: { type: "number", value: 2 },
+                        },
+                        body: [
+                            {
+                                type: "expression",
+                                value: { type: "string", value: "zwei" },
+                            },
+                        ],
+                    },
+                ],
+                else: [
+                    {
+                        type: "expression",
+                        value: { type: "boolean", value: false },
+                    },
                 ],
             },
             "",
