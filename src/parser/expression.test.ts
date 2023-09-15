@@ -189,35 +189,11 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses is existance expression", () => {
-        const parsed = parseExpression("dass, wahr ist");
+    it("parses equality operation expression", () => {
+        const parsed = parseExpression("wahr gleich falsch");
         expect(parsed).toEqual([
             {
-                type: "existance",
-                op: "is",
-                value: { type: "boolean", value: true },
-            },
-            "",
-        ]);
-    });
-
-    it("parses not existance expression", () => {
-        const parsed = parseExpression("dass, wahr nicht ist");
-        expect(parsed).toEqual([
-            {
-                type: "existance",
-                op: "not",
-                value: { type: "boolean", value: true },
-            },
-            "",
-        ]);
-    });
-
-    it("parses equality comparison expression", () => {
-        const parsed = parseExpression("dass, wahr gleich falsch ist");
-        expect(parsed).toEqual([
-            {
-                type: "comparison",
+                type: "operation",
                 op: "eq",
                 lhs: { type: "boolean", value: true },
                 rhs: { type: "boolean", value: false },
@@ -226,11 +202,11 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses inequality comparison expression", () => {
-        const parsed = parseExpression("dass, wahr nicht gleich falsch ist");
+    it("parses inequality operation expression", () => {
+        const parsed = parseExpression("wahr nicht gleich falsch");
         expect(parsed).toEqual([
             {
-                type: "comparison",
+                type: "operation",
                 op: "neq",
                 lhs: { type: "boolean", value: true },
                 rhs: { type: "boolean", value: false },
@@ -239,11 +215,11 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses greater than comparison expression", () => {
-        const parsed = parseExpression("dass, 10 größer als 5 ist");
+    it("parses greater than operation expression", () => {
+        const parsed = parseExpression("10 größer als 5");
         expect(parsed).toEqual([
             {
-                type: "comparison",
+                type: "operation",
                 op: "gt",
                 lhs: { type: "number", value: 10 },
                 rhs: { type: "number", value: 5 },
@@ -252,11 +228,11 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses greater than equal comparison expression", () => {
-        const parsed = parseExpression("dass, 10 größer als oder gleich 5 ist");
+    it("parses greater than equal operation expression", () => {
+        const parsed = parseExpression("10 größer als oder gleich 5");
         expect(parsed).toEqual([
             {
-                type: "comparison",
+                type: "operation",
                 op: "gte",
                 lhs: { type: "number", value: 10 },
                 rhs: { type: "number", value: 5 },
@@ -265,11 +241,11 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses less than comparison expression", () => {
-        const parsed = parseExpression("dass, 5 kleiner als 10 ist");
+    it("parses less than operation expression", () => {
+        const parsed = parseExpression("5 kleiner als 10");
         expect(parsed).toEqual([
             {
-                type: "comparison",
+                type: "operation",
                 op: "lt",
                 lhs: { type: "number", value: 5 },
                 rhs: { type: "number", value: 10 },
@@ -278,11 +254,11 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses less than equal comparison expression", () => {
-        const parsed = parseExpression("dass, 5 kleiner als oder gleich 10 ist");
+    it("parses less than equal operation expression", () => {
+        const parsed = parseExpression("5 kleiner als oder gleich 10");
         expect(parsed).toEqual([
             {
-                type: "comparison",
+                type: "operation",
                 op: "lte",
                 lhs: { type: "number", value: 5 },
                 rhs: { type: "number", value: 10 },

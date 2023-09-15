@@ -35,6 +35,11 @@ export function runExpression(
     }
 }
 
+// TODO
+const OP_BUILTIN = new Map([
+
+]);
+
 function runOperationExpression(
     expression: OperationExpression,
     context: Context,
@@ -70,6 +75,9 @@ function runOperationExpression(
         case "/": {
             result = left.value / right.value;
             break;
+        }
+        default: {
+            throw new Error("unimplemented");
         }
     }
 

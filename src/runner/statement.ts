@@ -40,6 +40,9 @@ export function runStatement(
             }
             return null;
         }
+        case "condition": {
+            throw new Error("unimplemented");
+        }
         default: {
             expectNever(statement);
         }

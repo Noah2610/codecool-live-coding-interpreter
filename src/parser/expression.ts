@@ -14,28 +14,29 @@ export type NumberExpression = { type: "number"; value: number };
 export type BooleanExpression = { type: "boolean"; value: boolean };
 export type StringExpression = { type: "string"; value: string };
 export type NullExpression = { type: "null" };
+
+type ArithmeticOp = "+" | "-" | "*" | "/";
+type ComparisonOp = "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
+type LogicalOp = "and" | "or";
 export type OperationExpression = {
     type: "operation";
-    op: "+" | "-" | "*" | "/";
+    op: ArithmeticOp | ComparisonOp | LogicalOp;
     lhs: Expression;
     rhs: Expression;
 };
-// TODO: find better name
-export type ExistanceExpression = {
-    type: "existance";
-    op: "is" | "not";
-    value: Expression;
-};
+
 export type ComparisonExpression = {
     type: "comparison";
     op: "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
     lhs: Expression;
     rhs: Expression;
 };
+
 export type VariableReferenceExpression = {
     type: "variableReference";
     identifier: string;
 };
+
 export type FunctionCallExpression = {
     type: "functionCall";
     identifier: string;
@@ -48,12 +49,9 @@ export type PrimitiveExpression =
     | StringExpression
     | NullExpression;
 
-export type ConditionExpression = ExistanceExpression | ComparisonExpression;
-
 export type Expression =
     | PrimitiveExpression
     | OperationExpression
-    | ConditionExpression
     | VariableReferenceExpression
     | FunctionCallExpression;
 
