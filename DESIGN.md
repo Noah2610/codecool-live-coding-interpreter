@@ -26,20 +26,32 @@ das Resultat der Addition von zwei Zahlen ist
 
 die Summe von 1, 2, 3 und 4
 
+stimmt, dass wahr gleich wahr ist?
+
 # IF
-stimmt, dass CONDITION?
+stimmt, dass EXPRESSION ist?
     BLOCK
-oder doch CONDITION?
+oder doch, dass EXPRESSION ist?
     BLOCK
 oder nicht?
     BLOCK
-??
+?!
 
-# CONDITION
-wahr ist gleich wahr
-nicht 10 größer als 5
-5 kleiner als 10
-die aussage ist 10 gleich 5
+stimmt, dass wahr gleich wahr ist?
+oder doch, dass wahr nicht gleich wahr ist?
+oder nicht?
+?!
+
+# CONDITION EXPRESSION
+wahr gleich wahr
+10 größer als 5
+5 nicht größer als 10
+5 größer als oder gleich 5
+
+# AND
+wahr1 und wahr2
+
+die Aussage ist 10 gleich 5
 
 # OPERATION
 die Summe von die Differenz von 10 und 20 und 30
