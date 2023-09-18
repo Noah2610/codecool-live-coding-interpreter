@@ -8,6 +8,7 @@ import {
     extractToken,
     extractWhitespace1,
 } from "./extractors";
+import * as node from "../node";
 
 export type NumberExpression = { type: "number"; value: number };
 export type BooleanExpression = { type: "boolean"; value: boolean };
@@ -20,13 +21,6 @@ type LogicalOp = "and" | "or";
 export type OperationExpression = {
     type: "operation";
     op: ArithmeticOp | ComparisonOp | LogicalOp;
-    lhs: Expression;
-    rhs: Expression;
-};
-
-export type ComparisonExpression = {
-    type: "comparison";
-    op: "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
     lhs: Expression;
     rhs: Expression;
 };
@@ -152,16 +146,10 @@ function parseNumberExpression(
             decimalNum / 10 ** (Math.floor(Math.log10(decimalNum)) + 1);
         const finalNum = num + floatNum;
 
-        return [
-            {
-                type: "number",
-                value: finalNum,
-            },
-            rest,
-        ];
+        return [node.num(finalNum), rest];
     }
 
-    return [{ type: "number", value: num }, rest];
+    return [node.num(num), rest];
 }
 
 function parseBooleanExpression(
@@ -169,11 +157,11 @@ function parseBooleanExpression(
 ): [BooleanExpression | null, string] {
     var [trueToken, rest] = extractToken("wahr")(input);
     if (trueToken) {
-        return [{ type: "boolean", value: true }, rest];
+        return [node.bool(true), rest];
     }
     var [falseToken, rest] = extractToken("falsch")(rest);
     if (falseToken) {
-        return [{ type: "boolean", value: false }, rest];
+        return [node.bool(false), rest];
     }
     return [null, input];
 }
@@ -185,13 +173,13 @@ function parseStringExpression(
     if (str === null) {
         return [null, input];
     }
-    return [{ type: "string", value: str }, rest];
+    return [node.str(str), rest];
 }
 
 function parseNullExpression(input: string): [NullExpression | null, string] {
     const [nullToken, rest] = extractToken("nix")(input);
     if (nullToken === null) return [null, input];
-    return [{ type: "null" }, rest];
+    return [node.nullExp(), rest];
 }
 
 // TODO
@@ -208,12 +196,8 @@ function parseArithmeticExpression(
             extractWhitespace1(),
             parseExpression,
         ] as const,
-        ([op, lhs, _ws1, _und, _ws2, rhs]): OperationExpression => ({
-            type: "operation",
-            op,
-            lhs,
-            rhs,
-        }),
+        ([op, lhs, _ws1, _und, _ws2, rhs]): OperationExpression =>
+            node.operation(op, lhs, rhs),
     )(input);
 }
 
@@ -228,12 +212,8 @@ function parseComparisonExpression(
             extractWhitespace1(),
             parseExpression,
         ] as const,
-        ([lhs, _ws1, _kw, _ws2, rhs]): OperationExpression => ({
-            type: "operation",
-            op: "eq",
-            lhs,
-            rhs,
-        }),
+        ([lhs, _ws1, _kw, _ws2, rhs]): OperationExpression =>
+            node.operation("eq", lhs, rhs),
     );
 
     const parseInequalityComparison = extractSequence(
@@ -246,12 +226,8 @@ function parseComparisonExpression(
             extractWhitespace1(),
             parseExpression,
         ] as const,
-        ([lhs, _ws1, _kw1, _ws2, _kw2, _ws3, rhs]): OperationExpression => ({
-            type: "operation",
-            op: "neq",
-            lhs,
-            rhs,
-        }),
+        ([lhs, _ws1, _kw1, _ws2, _kw2, _ws3, rhs]): OperationExpression =>
+            node.operation("neq", lhs, rhs),
     );
 
     const parseGreaterThanComparison = extractSequence(
@@ -264,12 +240,8 @@ function parseComparisonExpression(
             extractWhitespace1(),
             parseExpression,
         ] as const,
-        ([lhs, _ws1, _kw1, _ws2, _kw2, _ws3, rhs]): OperationExpression => ({
-            type: "operation",
-            op: "gt",
-            lhs,
-            rhs,
-        }),
+        ([lhs, _ws1, _kw1, _ws2, _kw2, _ws3, rhs]): OperationExpression =>
+            node.operation("gt", lhs, rhs),
     );
 
     const parseGreaterThanEqualComparison = extractSequence(
@@ -286,15 +258,8 @@ function parseComparisonExpression(
             extractWhitespace1(),
             parseExpression,
         ] as const,
-        // prettier-ignore
-        ([
-            lhs, _1, _2, _3, _4, _5, _6, _7, _8, _9, rhs
-        ]): OperationExpression => ({
-            type: "operation",
-            op: "gte",
-            lhs,
-            rhs,
-        }),
+        ([lhs, _1, _2, _3, _4, _5, _6, _7, _8, _9, rhs]): OperationExpression =>
+            node.operation("gte", lhs, rhs),
     );
 
     const parseLessThanComparison = extractSequence(
@@ -307,12 +272,8 @@ function parseComparisonExpression(
             extractWhitespace1(),
             parseExpression,
         ] as const,
-        ([lhs, _ws1, _kw1, _ws2, _kw2, _ws3, rhs]): OperationExpression => ({
-            type: "operation",
-            op: "lt",
-            lhs,
-            rhs,
-        }),
+        ([lhs, _ws1, _kw1, _ws2, _kw2, _ws3, rhs]): OperationExpression =>
+            node.operation("lt", lhs, rhs),
     );
 
     const parseLessThanEqualComparison = extractSequence(
@@ -329,15 +290,8 @@ function parseComparisonExpression(
             extractWhitespace1(),
             parseExpression,
         ] as const,
-        // prettier-ignore
-        ([
-            lhs, _1, _2, _3, _4, _5, _6, _7, _8, _9, rhs
-        ]): OperationExpression => ({
-            type: "operation",
-            op: "lte",
-            lhs,
-            rhs,
-        }),
+        ([lhs, _1, _2, _3, _4, _5, _6, _7, _8, _9, rhs]): OperationExpression =>
+            node.operation("lte", lhs, rhs),
     );
 
     // wahr gleich falsch
@@ -390,12 +344,8 @@ function parseLogicalExpression(
             extractWhitespace1(),
             parseExpression,
         ] as const,
-        ([lhs, _1, _2, _3, rhs]): OperationExpression => ({
-            type: "operation",
-            op: "and",
-            lhs,
-            rhs,
-        }),
+        ([lhs, _1, _2, _3, rhs]): OperationExpression =>
+            node.operation("and", lhs, rhs),
     );
 
     const parseOr = extractSequence(
@@ -406,12 +356,8 @@ function parseLogicalExpression(
             extractWhitespace1(),
             parseExpression,
         ] as const,
-        ([lhs, _1, _2, _3, rhs]): OperationExpression => ({
-            type: "operation",
-            op: "or",
-            lhs,
-            rhs,
-        }),
+        ([lhs, _1, _2, _3, rhs]): OperationExpression =>
+            node.operation("or", lhs, rhs),
     );
 
     // wahr und falsch
@@ -440,7 +386,7 @@ function parseVariableReferenceExpression(
     if (identifier === null) {
         return [null, input];
     }
-    return [{ type: "variableReference", identifier }, rest];
+    return [node.variableRef(identifier), rest];
 }
 
 function parseFunctionCallExpression(
@@ -482,12 +428,5 @@ function parseFunctionCallExpression(
         }
     }
 
-    return [
-        {
-            type: "functionCall",
-            identifier,
-            parameters,
-        },
-        rest,
-    ];
+    return [node.functionCall(identifier, parameters), rest];
 }

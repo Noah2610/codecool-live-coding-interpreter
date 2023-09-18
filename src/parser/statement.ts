@@ -39,7 +39,7 @@ export type ConditionStatement = {
     else: Statement[] | null;
 };
 
-type Conditional = {
+export type Conditional = {
     condition: Expression;
     body: Statement[];
 };
