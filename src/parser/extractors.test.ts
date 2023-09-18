@@ -126,31 +126,31 @@ describe("extractors", () => {
     });
 
     it("extracts sequence (extractSequence)", () => {
-        const [extracted, rest] = extractSequence(
-            "5 10 a",
+        const extractor = extractSequence(
             [extractNumber(), extractWhitespace1(), extractNumber()] as const,
             ([a, _, b]) => [a, b],
         );
+        const [extracted, rest] = extractor("5 10 a");
         expect(extracted).toEqual([5, 10]);
         expect(rest).toBe(" a");
     });
 
     it("can't extract sequence (extractSequence)", () => {
-        const [extracted, rest] = extractSequence(
-            "NaN",
+        const extractor = extractSequence(
             [extractNumber()] as const,
             (_) => true,
         );
+        const [extracted, rest] = extractor("NaN");
         expect(extracted).toBeNull();
         expect(rest).toBe("NaN");
     });
 
     it("can't extract sequence, failing at second extractor (extractSequence)", () => {
-        const [extracted, rest] = extractSequence(
-            "hello world",
+        const extractor = extractSequence(
             [extractToken("hello"), extractToken("world")] as const,
             (_) => true,
         );
+        const [extracted, rest] = extractor("hello world");
         expect(extracted).toBeNull();
         expect(rest).toBe("hello world");
     });
