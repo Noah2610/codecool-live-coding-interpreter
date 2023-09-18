@@ -189,7 +189,7 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses equality operation expression", () => {
+    it("parses equality comparison operation expression", () => {
         const parsed = parseExpression("wahr gleich falsch");
         expect(parsed).toEqual([
             {
@@ -202,7 +202,7 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses inequality operation expression", () => {
+    it("parses inequality comparison operation expression", () => {
         const parsed = parseExpression("wahr nicht gleich falsch");
         expect(parsed).toEqual([
             {
@@ -215,7 +215,7 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses greater than operation expression", () => {
+    it("parses greater than comparison operation expression", () => {
         const parsed = parseExpression("10 größer als 5");
         expect(parsed).toEqual([
             {
@@ -228,7 +228,7 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses greater than equal operation expression", () => {
+    it("parses greater than equal comparison operation expression", () => {
         const parsed = parseExpression("10 größer als oder gleich 5");
         expect(parsed).toEqual([
             {
@@ -241,7 +241,7 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses less than operation expression", () => {
+    it("parses less than comparison operation expression", () => {
         const parsed = parseExpression("5 kleiner als 10");
         expect(parsed).toEqual([
             {
@@ -254,7 +254,7 @@ describe("parse expressions", () => {
         ]);
     });
 
-    it("parses less than equal operation expression", () => {
+    it("parses less than equal comparison operation expression", () => {
         const parsed = parseExpression("5 kleiner als oder gleich 10");
         expect(parsed).toEqual([
             {
@@ -262,6 +262,32 @@ describe("parse expressions", () => {
                 op: "lte",
                 lhs: { type: "number", value: 5 },
                 rhs: { type: "number", value: 10 },
+            },
+            "",
+        ]);
+    });
+
+    it("parses logical and operation expression", () => {
+        const parsed = parseExpression("wahr und falsch");
+        expect(parsed).toEqual([
+            {
+                type: "operation",
+                op: "and",
+                lhs: { type: "boolean", value: true },
+                rhs: { type: "boolean", value: false },
+            },
+            "",
+        ]);
+    });
+
+    it("parses logical or operation expression", () => {
+        const parsed = parseExpression("wahr oder falsch");
+        expect(parsed).toEqual([
+            {
+                type: "operation",
+                op: "or",
+                lhs: { type: "boolean", value: true },
+                rhs: { type: "boolean", value: false },
             },
             "",
         ]);
