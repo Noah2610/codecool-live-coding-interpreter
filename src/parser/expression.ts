@@ -7,7 +7,7 @@ import {
     extractSequence,
     extractToken,
     extractWhitespace1,
-} from "./extractors";
+} from "./extractorsOld";
 
 export type NumberExpression = { type: "number"; value: number };
 export type BooleanExpression = { type: "boolean"; value: boolean };

@@ -11,49 +11,47 @@ import {
     extractList,
     extractSequence,
     extractNumber,
-} from "./extractors";
+} from "./extractorsOld";
 
-describe("extractors", () => {
+describe("extractorsOld", () => {
     it("extracts token 'hello'", () => {
-        const extracted = extractToken("hello")("hello world");
+        const extracted = extractToken("hello world", "hello");
         expect(extracted).toEqual(["hello", " world"]);
     });
 
     it("can't extract missing token", () => {
-        const extracted = extractToken("hello")("foo bar");
+        const extracted = extractToken("foo bar", "hello");
         expect(extracted).toEqual([null, "foo bar"]);
     });
 
     it("extracts while letter is lowercase", () => {
-        const extracted = extractWhile((c) => c === c.toLowerCase())(
+        const extracted = extractWhile(
             "helloWorld",
+            (c) => c === c.toLowerCase(),
         );
         expect(extracted).toEqual(["hello", "World"]);
     });
 
     it("can't extract at least one lowercase letter (extractWhile1)", () => {
-        const extracted = extractWhile1((c) => c === c.toLowerCase())("Hello");
+        const extracted = extractWhile1("Hello", (c) => c === c.toLowerCase());
         expect(extracted).toEqual([null, "Hello"]);
     });
 
     it("extracts whitespace", () => {
-        const ws = extractWhitespace();
-        expect(ws("foo")).toEqual(["", "foo"]);
-        expect(ws("  foo")).toEqual(["  ", "foo"]);
-        expect(ws("\n\tfoo")).toEqual(["\n\t", "foo"]);
-        expect(ws("\r\n\tfoo")).toEqual(["\r\n\t", "foo"]);
+        expect(extractWhitespace("foo")).toEqual(["", "foo"]);
+        expect(extractWhitespace("  foo")).toEqual(["  ", "foo"]);
+        expect(extractWhitespace("\n\tfoo")).toEqual(["\n\t", "foo"]);
+        expect(extractWhitespace("\r\n\tfoo")).toEqual(["\r\n\t", "foo"]);
     });
 
     it("extracts at least one whitespace (extractWhitespace1)", () => {
-        const ws1 = extractWhitespace1();
-        expect(ws1("foo")).toEqual([null, "foo"]);
-        expect(ws1("  foo")).toEqual(["  ", "foo"]);
+        expect(extractWhitespace1("foo")).toEqual([null, "foo"]);
+        expect(extractWhitespace1("  foo")).toEqual(["  ", "foo"]);
     });
 
     it("extracts until terminator (extractUntil)", () => {
-        const until = extractUntil("!");
-        expect(until("Hallo Welt!")).toEqual(["Hallo Welt", ""]);
-        expect(until("Hallo Welt")).toEqual([null, "Hallo Welt"]);
+        expect(extractUntil("Hallo Welt!", "!")).toEqual(["Hallo Welt", ""]);
+        expect(extractUntil("Hallo Welt", "!")).toEqual([null, "Hallo Welt"]);
     });
 
     it("formats identifier", () => {
@@ -63,26 +61,32 @@ describe("extractors", () => {
     });
 
     it("extracts identifier (extractIdentifierUntil)", () => {
-        const extractor = extractIdentifierUntil(" ist");
-        expect(extractor("Meine Variable ist")).toEqual(["Meine Variable", ""]);
-        expect(extractor("Dieser Wert ist 123")).toEqual([
+        expect(extractIdentifierUntil("Meine Variable ist", " ist")).toEqual([
+            "Meine Variable",
+            "",
+        ]);
+        expect(extractIdentifierUntil("Dieser Wert ist 123", " ist")).toEqual([
             "Dieser Wert",
             " 123",
         ]);
-        expect(extractor("  Mein   Etwas   ist something")).toEqual([
-            "Mein Etwas",
-            " something",
-        ]);
+        expect(
+            extractIdentifierUntil("  Mein   Etwas   ist something", " ist"),
+        ).toEqual(["Mein Etwas", " something"]);
     });
 
     it("doesn't extract identifier with missing terminator (extractIdentifierUntil)", () => {
-        const extractor = extractIdentifierUntil("!");
-        expect(extractor("Meine Variable")).toEqual([null, "Meine Variable"]);
+        expect(extractIdentifierUntil("Meine Variable", "!")).toEqual([
+            null,
+            "Meine Variable",
+        ]);
     });
 
     it('extracts comma-delimited list (extractDelimitedList with ",")', () => {
-        const extractor = extractDelimitedList(",", " END");
-        const extracted = extractor("hello, world, comma-delimited list END");
+        const extracted = extractDelimitedList(
+            "hello, world, comma-delimited list END",
+            ",",
+            " END",
+        );
         expect(extracted).toEqual([
             ["hello", "world", "comma-delimited list"],
             "",
@@ -90,45 +94,51 @@ describe("extractors", () => {
     });
 
     it('extracts word-delimited list (extractDelimitedList with "und")', () => {
-        const extractor = extractDelimitedList(" und ", " END");
-        const extracted = extractor("hallo und welt END");
+        const extracted = extractDelimitedList(
+            "hallo und welt END",
+            " und ",
+            " END",
+        );
         expect(extracted).toEqual([["hallo", "welt"], ""]);
     });
 
     it("extracts lists", () => {
-        const extractor = extractList(" END");
-        expect(extractor("hallo END")).toEqual([["hallo"], ""]);
-        expect(extractor("hallo und Welt END")).toEqual([
+        expect(extractList("hallo END", " END")).toEqual([["hallo"], ""]);
+        expect(extractList("hallo und Welt END", " END")).toEqual([
             ["hallo", "Welt"],
             "",
         ]);
-        expect(extractor("hallo, tolle und Welt END")).toEqual([
+        expect(extractList("hallo, tolle und Welt END", " END")).toEqual([
             ["hallo", "tolle", "Welt"],
             "",
         ]);
     });
 
     it("doesn't extract invalid lists", () => {
-        const extractor = extractList(" END");
-        expect(extractor("hallo, Welt END")).toEqual([null, "hallo, Welt END"]);
-        expect(extractor("hallo und tolle und Welt END")).toEqual([
+        expect(extractList("hallo, Welt END", " END")).toEqual([
+            null,
+            "hallo, Welt END",
+        ]);
+        expect(extractList("hallo und tolle und Welt END", " END")).toEqual([
             null,
             "hallo und tolle und Welt END",
         ]);
     });
 
     it('extracts list with terminator including "und"', () => {
-        const extractor = extractList(" und ende");
-        expect(extractor("hallo, tolle und Welt und ende")).toEqual([
-            ["hallo", "tolle", "Welt"],
-            "",
-        ]);
+        expect(
+            extractList("hallo, tolle und Welt und ende", " und ende"),
+        ).toEqual([["hallo", "tolle", "Welt"], ""]);
     });
 
     it("extracts sequence (extractSequence)", () => {
         const [extracted, rest] = extractSequence(
             "5 10 a",
-            [extractNumber(), extractWhitespace1(), extractNumber()] as const,
+            [
+                extractNumber,
+                extractWhitespace1,
+                extractNumber,
+            ] as const,
             ([a, _, b]) => [a, b],
         );
         expect(extracted).toEqual([5, 10]);
@@ -138,7 +148,7 @@ describe("extractors", () => {
     it("can't extract sequence (extractSequence)", () => {
         const [extracted, rest] = extractSequence(
             "NaN",
-            [extractNumber()] as const,
+            [extractNumber] as const,
             (_) => true,
         );
         expect(extracted).toBeNull();
@@ -148,7 +158,10 @@ describe("extractors", () => {
     it("can't extract sequence, failing at second extractor (extractSequence)", () => {
         const [extracted, rest] = extractSequence(
             "hello world",
-            [extractToken("hello"), extractToken("world")] as const,
+            [
+                (s) => extractToken(s, "hello"),
+                (s) => extractToken(s, "world"),
+            ] as const,
             (_) => true,
         );
         expect(extracted).toBeNull();

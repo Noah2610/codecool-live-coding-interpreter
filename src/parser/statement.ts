@@ -7,7 +7,7 @@ import {
     formatIdentifier,
     extractIdentifierUntil,
     extractList,
-} from "./extractors";
+} from "./extractorsOld";
 
 export type ExpressionStatement = {
     type: "expression";
