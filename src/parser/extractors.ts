@@ -333,25 +333,26 @@ export function extractList(terminator: string): Extractor<string[] | null> {
     };
 }
 
-export function extractSequence<T extends Extractors, R>(
-    input: string,
+export function extractSequence<R, T extends Extractors>(
     extractors: T,
     converter: (results: ExtractorReturnTypes<T>) => R,
-): [R | null, string] {
-    let rest = input;
-    const results: any[] = [];
+): Extractor<R | null> {
+    return (input) => {
+        let rest = input;
+        const results: any[] = [];
 
-    for (const extractor of extractors) {
-        const [result, newRest] = extractor(rest);
-        if (result === null) {
-            return [null, input];
+        for (const extractor of extractors) {
+            const [result, newRest] = extractor(rest);
+            if (result === null) {
+                return [null, input];
+            }
+
+            rest = newRest;
+            results.push(result);
         }
 
-        rest = newRest;
-        results.push(result);
-    }
-
-    return [converter(results as ExtractorReturnTypes<T>), rest];
+        return [converter(results as ExtractorReturnTypes<T>), rest];
+    };
 }
 
 export function formatIdentifier(unformatted: string): string {
