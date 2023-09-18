@@ -352,7 +352,7 @@ function parseLogicalExpression(
         [
             (s) => parseExpression(s, nextLayerIndex("logical")),
             extractWhitespace1(),
-            extractToken("or"),
+            extractToken("oder"),
             extractWhitespace1(),
             parseExpression,
         ] as const,

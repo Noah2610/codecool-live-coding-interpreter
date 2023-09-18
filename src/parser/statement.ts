@@ -38,7 +38,7 @@ export type PrintStatement = {
 export type ConditionStatement = {
     type: "condition";
     if: Conditional;
-    elseIfs: Conditional[];
+    elseIfs: Conditional[] | null;
     else: Statement[] | null;
 };
 
@@ -65,6 +65,13 @@ export function parseStatement(input: string): [Statement | null, string] {
     var [exp, rest] = parseExpression(rest);
     if (exp !== null) {
         statement = node.exprStatement(exp);
+    }
+
+    if (!statement) {
+        var [condition, rest] = parseConditionStatement(rest);
+        if (condition !== null) {
+            statement = condition;
+        }
     }
 
     if (!statement) {
@@ -175,19 +182,152 @@ function parseReturnStatement(input: string): [ReturnStatement | null, string] {
 }
 
 function parsePrintStatement(input: string): [PrintStatement | null, string] {
-    return extractSequence([
-        extractToken("zeig"),
-        extractWhitespace1(),
-        extractList(" an"),
-    ] as const, ([_1, _2, values]) => {
-        const expressions: Expression[] = [];
-        for (const value of values) {
-            const [expr, rest] = parseExpression(value);
-            if (expr === null || rest.trim().length > 0) {
-                return null;
+    return extractSequence(
+        [
+            extractToken("zeig"),
+            extractWhitespace1(),
+            extractList(" an"),
+        ] as const,
+        ([_1, _2, values]) => {
+            const expressions: Expression[] = [];
+            for (const value of values) {
+                const [expr, rest] = parseExpression(value);
+                if (expr === null || rest.trim().length > 0) {
+                    return null;
+                }
+                expressions.push(expr);
             }
-            expressions.push(expr);
-        }
-        return node.printKeyword(expressions);
-    })(input);
+            return node.printKeyword(expressions);
+        },
+    )(input);
+}
+
+function parseConditionStatement(
+    input: string,
+): [ConditionStatement | null, string] {
+    const extractCondition = () =>
+        extractSequence(
+            [
+                extractToken("dass"),
+                extractWhitespace1(),
+                parseExpression,
+                extractWhitespace1(),
+                extractToken("ist"),
+                extractWhitespace(),
+                extractToken("?"),
+                extractWhitespace(),
+            ] as const,
+            ([_1, _2, cond, _3, _4, _5, _6, _7]) => cond,
+        );
+
+    const extractBody = (terminator: string) =>
+        extractMultipleUntil(
+            extractSequence(
+                [parseStatement, extractWhitespace()] as const,
+                ([statement, _ws]) => statement,
+            ),
+            terminator,
+            (statements) => statements,
+        );
+
+    const extractElseIf = (terminator: string) =>
+        extractSequence(
+            [
+                // extractToken("oder"),
+                // extractWhitespace1(),
+                extractToken("doch,"),
+                extractWhitespace1(),
+                extractCondition(),
+                extractBody(terminator),
+                extractWhitespace(),
+            ] as const,
+            ([_1, _2, condition, body, _3]) => ({ condition, body }),
+        );
+
+    return extractSequence(
+        [
+            extractToken("stimmt,"),
+            extractWhitespace1(),
+            extractCondition(),
+            // extractEither(
+            extractSequence(
+                [
+                    extractBody("oder"),
+                    extractEither(
+                        extractEither(
+                            // ELSE-IFS + ELSE
+                            extractSequence(
+                                [
+                                    extractMultipleUntil(
+                                        extractElseIf("oder"),
+                                        "nicht?",
+                                        (conditionals) => conditionals,
+                                    ),
+                                    extractBody("oder?"),
+                                ] as const,
+                                ([elseIfs, elseBody]) => ({
+                                    elseIfs:
+                                        elseIfs.length > 0 ? elseIfs : null,
+                                    else: elseBody,
+                                }),
+                            ),
+                            // ELSE-IFS (no else)
+                            extractMultipleUntil(
+                                extractElseIf("oder"),
+                                "?",
+                                (elseIfs) => ({ elseIfs, else: null }),
+                            ),
+                            ({ elseIfs, else: elseBody }) => ({
+                                elseIfs:
+                                    elseIfs !== null && elseIfs.length > 0
+                                        ? elseIfs
+                                        : null,
+                                else: elseBody,
+                            }),
+                        ),
+                        // ELSE (no else-ifs)
+                        extractSequence(
+                            [
+                                extractToken("nicht?"),
+                                extractWhitespace(),
+                                extractBody("oder?"),
+                            ] as const,
+                            ([_1, _2, elseBody]) => ({
+                                elseIfs: null,
+                                else: elseBody,
+                            }),
+                        ),
+                        ({ elseIfs, else: elseBody }) => ({
+                            elseIfs,
+                            else: elseBody,
+                        }),
+                    ),
+                ] as const,
+                ([body, { elseIfs, else: elseBody }]) => ({
+                    body,
+                    elseIfs,
+                    else: elseBody,
+                }),
+            ),
+            // TODO: I think this case is caught by one of the above
+            // NO ELSE (only IF)
+            // extractBody("oder?"),
+            // (x) =>
+            //     Array.isArray(x)
+            //         ? { body: x, elseIfs: null, else: null }
+            //         : { body: x.body, elseIfs: x.elseIfs, else: x.else },
+            // ),
+        ] as const,
+        ([
+            _1,
+            _2,
+            ifCond,
+            { body, elseIfs, else: elseBody },
+        ]): ConditionStatement => ({
+            type: "condition",
+            if: { condition: ifCond, body },
+            elseIfs,
+            else: elseBody,
+        }),
+    )(input);
 }

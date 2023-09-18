@@ -227,15 +227,14 @@ describe("parse statements", () => {
         const parsed = parseStatement(`
             stimmt, dass wahr ist?
                 wahr!
-            ?!`);
+            oder?!`);
         expect(parsed).toEqual([
             {
                 type: "condition",
                 if: {
                     condition: {
-                        type: "existance",
-                        op: "is",
-                        value: { type: "boolean", value: true },
+                        type: "boolean",
+                        value: true,
                     },
                     body: [
                         {
@@ -244,7 +243,7 @@ describe("parse statements", () => {
                         },
                     ],
                 },
-                elseIfs: [],
+                elseIfs: null,
                 else: null,
             },
             "",
@@ -257,15 +256,14 @@ describe("parse statements", () => {
                 wahr!
             oder nicht?
                 falsch!
-            ?!`);
+            oder?!`);
         expect(parsed).toEqual([
             {
                 type: "condition",
                 if: {
                     condition: {
-                        type: "existance",
-                        op: "is",
-                        value: { type: "boolean", value: true },
+                        type: "boolean",
+                        value: true,
                     },
                     body: [
                         {
@@ -274,13 +272,89 @@ describe("parse statements", () => {
                         },
                     ],
                 },
-                elseIfs: [],
+                elseIfs: null,
                 else: [
                     {
                         type: "expression",
                         value: { type: "boolean", value: false },
                     },
                 ],
+            },
+            "",
+        ]);
+    });
+
+    it("parses condition statement with multiple else ifs and no else", () => {
+        const parsed = parseStatement(`
+            stimmt, dass wahr ist?
+                wahr!
+            oder doch, dass 1 größer als 2 ist?
+                "eins"!
+            oder doch, dass 1 kleiner als oder gleich 2 ist?
+                "zwei"!
+            oder doch, dass 1 gleich 1 ist?
+                falsch!
+            oder?!`);
+        expect(parsed).toEqual([
+            {
+                type: "condition",
+                if: {
+                    condition: {
+                        type: "boolean",
+                        value: true,
+                    },
+                    body: [
+                        {
+                            type: "expression",
+                            value: { type: "boolean", value: true },
+                        },
+                    ],
+                },
+                elseIfs: [
+                    {
+                        condition: {
+                            type: "operation",
+                            op: "gt",
+                            lhs: { type: "number", value: 1 },
+                            rhs: { type: "number", value: 2 },
+                        },
+                        body: [
+                            {
+                                type: "expression",
+                                value: { type: "string", value: "eins" },
+                            },
+                        ],
+                    },
+                    {
+                        condition: {
+                            type: "operation",
+                            op: "lte",
+                            lhs: { type: "number", value: 1 },
+                            rhs: { type: "number", value: 2 },
+                        },
+                        body: [
+                            {
+                                type: "expression",
+                                value: { type: "string", value: "zwei" },
+                            },
+                        ],
+                    },
+                    {
+                        condition: {
+                            type: "operation",
+                            op: "eq",
+                            lhs: { type: "number", value: 1 },
+                            rhs: { type: "number", value: 1 },
+                        },
+                        body: [
+                            {
+                                type: "expression",
+                                value: { type: "boolean", value: false },
+                            },
+                        ],
+                    },
+                ],
+                else: null,
             },
             "",
         ]);
@@ -296,15 +370,14 @@ describe("parse statements", () => {
                 "zwei"!
             oder nicht?
                 falsch!
-            ?!`);
+            oder?!`);
         expect(parsed).toEqual([
             {
                 type: "condition",
                 if: {
                     condition: {
-                        type: "existance",
-                        op: "is",
-                        value: { type: "boolean", value: true },
+                        type: "boolean",
+                        value: true,
                     },
                     body: [
                         {
@@ -316,7 +389,7 @@ describe("parse statements", () => {
                 elseIfs: [
                     {
                         condition: {
-                            type: "comparison",
+                            type: "operation",
                             op: "gt",
                             lhs: { type: "number", value: 1 },
                             rhs: { type: "number", value: 2 },
@@ -330,7 +403,7 @@ describe("parse statements", () => {
                     },
                     {
                         condition: {
-                            type: "comparison",
+                            type: "operation",
                             op: "lte",
                             lhs: { type: "number", value: 1 },
                             rhs: { type: "number", value: 2 },
