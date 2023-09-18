@@ -54,7 +54,10 @@ export type Expression =
     | VariableReferenceExpression
     | FunctionCallExpression;
 
-export function parseExpression(input: string): [Expression | null, string] {
+export function parseExpression(
+    input: string,
+    layer: number = 0,
+): [Expression | null, string] {
     /*
         null
         boolean
@@ -73,56 +76,58 @@ export function parseExpression(input: string): [Expression | null, string] {
     // (wahr gleich wahr) und (wahr gleich wahr)
     // ((die Summe von 1 und 2) gleich (die Summe von 2 und 1)) und ()
 
-    const logical = parseLogicalLayer(input);
-    if (logical[0] !== null) {
-        return logical;
+    if (layer >= EXPRESSION_PARSE_LAYERS.length) {
+        return [null, input];
     }
 
-    return [null, input];
+    const parser = EXPRESSION_PARSE_LAYERS[layer];
+    if (parser === undefined) {
+        throw new Error(
+            `[parseExpression] Invalid layer index: ${layer}, expected between 0 and ${
+                EXPRESSION_PARSE_LAYERS.length - 1
+            } (inclusive)`,
+        );
+    }
+
+    const expr = parser(input);
+    if (expr[0] !== null) return expr;
+    return parseExpression(input, layer + 1);
 }
 
-function parseLogicalLayer(input: string): [Expression | null, string] {
-    const logical = parseLogicalOperationExpression(input);
-    if (logical[0] !== null) return logical;
-    return parseComparisonLayer(input);
+const EXPRESSION_PARSE_LAYERS = [
+    parseLogicalExpression,
+    parseComparisonExpression,
+    parseArithmeticExpression,
+    parseFunctionCallExpression,
+    parseVariableReferenceExpression,
+    parseStringExpression,
+    parseNumberExpression,
+    parseBooleanExpression,
+    parseNullExpression,
+] as const;
+
+const EXPRESSION_PARSE_LAYER_NAMES = [
+    "logical",
+    "comparison",
+    "arithmetic",
+    "functionCall",
+    "variableReference",
+    "string",
+    "number",
+    "boolean",
+    "null",
+] as const;
+
+function getLayerIndex(
+    layerName: (typeof EXPRESSION_PARSE_LAYER_NAMES)[number],
+): number {
+    return EXPRESSION_PARSE_LAYER_NAMES.indexOf(layerName);
 }
 
-function parseComparisonLayer(input: string): [Expression | null, string] {
-    const comparison = parseComparisonExpression(input);
-    if (comparison[0] !== null) return comparison;
-    return parseArithmeticLayer(input);
-}
-
-function parseArithmeticLayer(input: string): [Expression | null, string] {
-    const arithmetic = parseArithmeticOperationExpression(input);
-    if (arithmetic[0] !== null) return arithmetic;
-    return parseReferenceLayer(input);
-}
-
-function parseReferenceLayer(input: string): [Expression | null, string] {
-    const funcCall = parseFunctionCallExpression(input);
-    if (funcCall[0] !== null) return funcCall;
-    const variableRef = parseVariableReferenceExpression(input);
-    if (variableRef[0] !== null) return variableRef;
-    return parsePrimitiveLayer(input);
-}
-
-function parsePrimitiveLayer(input: string): [Expression | null, string] {
-    const primitive = parsePrimitiveExpression(input);
-    if (primitive[0] !== null) return primitive;
-    return [null, input];
-}
-
-function parsePrimitiveExpression(input: string): [Expression | null, string] {
-    const str = parseStringExpression(input);
-    if (str[0] !== null) return str;
-    const num = parseNumberExpression(input);
-    if (num[0] !== null) return num;
-    const bool = parseBooleanExpression(input);
-    if (bool[0] !== null) return bool;
-    const nullExpr = parseNullExpression(input);
-    if (nullExpr[0] !== null) return nullExpr;
-    return [null, input];
+function nextLayerIndex(
+    layerName: (typeof EXPRESSION_PARSE_LAYER_NAMES)[number],
+): number {
+    return EXPRESSION_PARSE_LAYER_NAMES.indexOf(layerName) + 1;
 }
 
 function parseNumberExpression(
@@ -187,7 +192,7 @@ function parseNullExpression(input: string): [NullExpression | null, string] {
 }
 
 // TODO
-function parseArithmeticOperationExpression(
+function parseArithmeticExpression(
     input: string,
 ): [OperationExpression | null, string] {
     // die Summe von 1 und 2
@@ -195,7 +200,7 @@ function parseArithmeticOperationExpression(
         input,
         [
             extractOperator,
-            parseArithmeticLayer, // TODO parseReferenceLayer ?
+            (s) => parseExpression(s, nextLayerIndex("arithmetic")), // TODO parseReferenceLayer ?
             extractWhitespace1,
             (s) => extractToken(s, "und"),
             extractWhitespace1,
@@ -217,7 +222,7 @@ function parseComparisonExpression(
         extractSequence(
             input,
             [
-                parseArithmeticLayer,
+                (s) => parseExpression(s, nextLayerIndex("arithmetic")),
                 extractWhitespace1,
                 (s) => extractToken(s, "gleich"),
                 extractWhitespace1,
@@ -238,7 +243,7 @@ function parseComparisonExpression(
         extractSequence(
             input,
             [
-                parseArithmeticLayer,
+                (s) => parseExpression(s, nextLayerIndex("arithmetic")),
                 extractWhitespace1,
                 (s) => extractToken(s, "nicht"),
                 extractWhitespace1,
@@ -261,7 +266,7 @@ function parseComparisonExpression(
         extractSequence(
             input,
             [
-                parseArithmeticLayer,
+                (s) => parseExpression(s, nextLayerIndex("arithmetic")),
                 extractWhitespace1,
                 (s) => extractToken(s, "größer"),
                 extractWhitespace1,
@@ -284,7 +289,7 @@ function parseComparisonExpression(
         extractSequence(
             input,
             [
-                parseArithmeticLayer,
+                (s) => parseExpression(s, nextLayerIndex("arithmetic")),
                 extractWhitespace1,
                 (s) => extractToken(s, "größer"),
                 extractWhitespace1,
@@ -308,7 +313,7 @@ function parseComparisonExpression(
         extractSequence(
             input,
             [
-                parseArithmeticLayer,
+                (s) => parseExpression(s, nextLayerIndex("arithmetic")),
                 extractWhitespace1,
                 (s) => extractToken(s, "kleiner"),
                 extractWhitespace1,
@@ -331,7 +336,7 @@ function parseComparisonExpression(
         extractSequence(
             input,
             [
-                parseArithmeticLayer,
+                (s) => parseExpression(s, nextLayerIndex("arithmetic")),
                 extractWhitespace1,
                 (s) => extractToken(s, "kleiner"),
                 extractWhitespace1,
@@ -390,14 +395,14 @@ function parseComparisonExpression(
     return [null, input];
 }
 
-function parseLogicalOperationExpression(
+function parseLogicalExpression(
     input: string,
 ): [OperationExpression | null, string] {
     const parseAnd = (): [OperationExpression | null, string] =>
         extractSequence(
             input,
             [
-                parseComparisonLayer,
+                (s) => parseExpression(s, nextLayerIndex("logical")),
                 extractWhitespace1,
                 (s) => extractToken(s, "und"),
                 extractWhitespace1,
@@ -415,7 +420,7 @@ function parseLogicalOperationExpression(
         extractSequence(
             input,
             [
-                parseComparisonLayer,
+                (s) => parseExpression(s, nextLayerIndex("logical")),
                 extractWhitespace1,
                 (s) => extractToken(s, "or"),
                 extractWhitespace1,
@@ -486,7 +491,7 @@ function parseFunctionCallExpression(
         }
 
         for (const param of params) {
-            const [expr, exprRest] = parseExpression(param);
+            const [expr, exprRest] = parseExpression(param); // TODO: layer?
             if (expr === null || exprRest.trim().length > 0) {
                 throw new Error(
                     `Failed to parse functionCall parameter as expression: "${param}"`,
