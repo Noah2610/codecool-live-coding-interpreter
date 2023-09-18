@@ -4,10 +4,13 @@ import {
     extractToken,
     extractWhitespace,
     extractWhitespace1,
-    formatIdentifier,
     extractIdentifierUntil,
     extractList,
-} from "./extractorsOld";
+    extractSequence,
+    extractEither,
+    extractMultipleUntil,
+} from "./extractors";
+import * as node from "../node";
 
 export type ExpressionStatement = {
     type: "expression";
@@ -53,13 +56,15 @@ export type Statement =
     | ConditionStatement;
 
 export function parseStatement(input: string): [Statement | null, string] {
+    const wsExtractor = extractWhitespace();
+
     let statement: Statement | null = null;
 
-    var [_ws, rest] = extractWhitespace(input);
+    var [_ws, rest] = wsExtractor(input);
 
     var [exp, rest] = parseExpression(rest);
     if (exp !== null) {
-        statement = { type: "expression", value: exp };
+        statement = node.exprStatement(exp);
     }
 
     if (!statement) {
@@ -90,8 +95,8 @@ export function parseStatement(input: string): [Statement | null, string] {
         }
     }
 
-    var [_ws, rest] = extractWhitespace(rest);
-    var [terminator, rest] = extractToken(rest, "!");
+    var [_ws, rest] = wsExtractor(rest);
+    var [terminator, rest] = extractToken("!")(rest);
     if (terminator === null) {
         return [null, input];
     }
@@ -106,172 +111,83 @@ export function parseStatement(input: string): [Statement | null, string] {
 function parseVariableDefinitionStatement(
     input: string,
 ): [VariableDefinitionStatement | null, string] {
-    var [kw, rest] = extractOneOfToken(input, ["der", "die", "das"]);
-    if (kw === null) {
-        return [null, rest];
-    }
-    var [ws, rest] = extractWhitespace1(rest);
-    if (ws === null) {
-        return [null, rest];
-    }
-
-    var [identifier, rest] = extractIdentifierUntil(rest, " ist");
-    if (identifier === null) {
-        return [null, input];
-    }
-
-    var [ws, rest] = extractWhitespace1(rest);
-    if (ws === null) {
-        return [null, input];
-    }
-
-    var [exp, rest] = parseExpression(rest);
-    if (exp === null) {
-        return [null, input];
-    }
-
-    return [
-        {
-            type: "variableDefinition",
-            identifier,
-            value: exp,
-        },
-        rest,
-    ];
+    return extractSequence(
+        [
+            extractOneOfToken(["der", "die", "das"]),
+            extractWhitespace1(),
+            extractIdentifierUntil(" ist"),
+            extractWhitespace1(),
+            parseExpression,
+        ] as const,
+        ([_1, _2, ident, _3, value]): VariableDefinitionStatement =>
+            node.variableDef(ident, value),
+    )(input);
 }
 
 function parseFunctionDefinitionStatement(
     input: string,
 ): [FunctionDefinitionStatement | null, string] {
-    var [result, rest] = parseFunctionDefinitionHeader(input);
-    if (result === null) {
-        return [null, input];
-    }
-    // TODO proper error handling
-    if ("error" in result) {
-        throw result.error;
-    }
-    const { identifier, parameters } = result;
-
-    var [body, rest] = parseFunctionDefinitionBody(rest);
-    // TODO proper error handling
-    if (body === null) {
-        throw new Error("Failed to parse functionDefinition body");
-    }
-
-    const s: Statement = {
-        type: "functionDefinition",
-        identifier,
-        parameters,
-        body,
-    };
-    return [s, rest];
-}
-
-function parseFunctionDefinitionHeader(
-    input: string,
-): [
-    { identifier: string; parameters: string[] } | { error: Error } | null,
-    string,
-] {
-    var [token, rest] = extractToken(input, "die Funktion");
-    if (token === null) return [null, input];
-
-    const parameters: string[] = [];
-
-    var [identifier, rest] = extractIdentifierUntil(rest, " kriegt ");
-
-    if (identifier === null) {
-        var [identifier, rest] = extractIdentifierUntil(rest, " macht");
-        if (identifier === null) {
-            return [
-                {
-                    error: new Error(
-                        "Failed to parse functionDefinition: expected identifier",
-                    ),
-                },
-                input,
-            ];
-        }
-    } else {
-        var [params, rest] = extractList(rest, " und macht");
-        if (params === null) {
-            return [
-                {
-                    error: new Error(
-                        "Failed to parse functionDefinition parameters",
-                    ),
-                },
-                input,
-            ];
-        }
-        parameters.push(...params.map(formatIdentifier));
-    }
-
-    return [{ identifier, parameters }, rest];
-}
-
-function parseFunctionDefinitionBody(
-    input: string,
-): [Statement[] | null, string] {
-    var rest = input;
-    const body = [];
-
-    while (true) {
-        var [statement, rest] = parseStatement(rest);
-
-        if (statement === null) {
-            var [_ws, rest] = extractWhitespace(rest);
-            var [terminator, rest] = extractToken(rest, "und endet hier");
-            if (terminator === null) {
-                return [null, input];
-            }
-            break;
-        }
-
-        body.push(statement);
-    }
-
-    return [body, rest];
+    return extractSequence(
+        [
+            extractToken("die"),
+            extractWhitespace1(),
+            extractToken("Funktion"),
+            extractWhitespace1(),
+            extractEither(
+                extractSequence(
+                    [
+                        extractIdentifierUntil(" kriegt "),
+                        extractList(" und macht"),
+                    ] as const,
+                    ([identifier, parameters]) => ({ identifier, parameters }),
+                ),
+                extractSequence(
+                    [extractIdentifierUntil(" macht")] as const,
+                    ([identifier]) => ({
+                        identifier,
+                        parameters: [],
+                    }),
+                ),
+                (x) => x,
+            ),
+            extractMultipleUntil(
+                parseStatement,
+                "und endet hier",
+                (body) => body,
+            ),
+        ] as const,
+        ([_1, _2, _3, _4, { identifier, parameters }, body]) =>
+            node.functionDef(identifier, parameters, body),
+    )(input);
 }
 
 function parseReturnStatement(input: string): [ReturnStatement | null, string] {
-    var [token, rest] = extractToken(input, "gib");
-    if (token === null) return [null, input];
-
-    var [ws, rest] = extractWhitespace1(rest);
-    if (ws === null) return [null, input];
-
-    var [expr, rest] = parseExpression(rest);
-    if (expr === null) return [null, input];
-
-    var [ws, rest] = extractWhitespace1(rest);
-    if (ws === null) return [null, input];
-
-    var [token, rest] = extractToken(rest, "zurück");
-    if (token === null) return [null, input];
-
-    return [{ type: "return", value: expr }, rest];
+    return extractSequence(
+        [
+            extractToken("gib"),
+            extractWhitespace1(),
+            parseExpression,
+            extractWhitespace1(),
+            extractToken("zurück"),
+        ] as const,
+        ([_1, _2, value, _3, _4]) => node.returnKeyword(value),
+    )(input);
 }
 
 function parsePrintStatement(input: string): [PrintStatement | null, string] {
-    var [token, rest] = extractToken(input, "zeig");
-    if (token === null) return [null, input];
-
-    var [ws, rest] = extractWhitespace1(rest);
-    if (ws === null) return [null, input];
-
-    var [args, rest] = extractList(rest, " an");
-    if (args === null) return [null, rest];
-
-    const expressions: Expression[] = [];
-    for (const arg of args) {
-        const [expr, exprRest] = parseExpression(arg);
-        if (expr === null || exprRest.trim().length > 0) {
-            return [null, input];
+    return extractSequence([
+        extractToken("zeig"),
+        extractWhitespace1(),
+        extractList(" an"),
+    ] as const, ([_1, _2, values]) => {
+        const expressions: Expression[] = [];
+        for (const value of values) {
+            const [expr, rest] = parseExpression(value);
+            if (expr === null || rest.trim().length > 0) {
+                return null;
+            }
+            expressions.push(expr);
         }
-        expressions.push(expr);
-    }
-
-    return [{ type: "print", values: expressions }, rest];
+        return node.printKeyword(expressions);
+    })(input);
 }

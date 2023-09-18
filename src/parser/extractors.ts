@@ -355,6 +355,57 @@ export function extractSequence<R, T extends Extractors>(
     };
 }
 
+export function extractEither<R, T1, T2>(
+    extractorA: Extractor<T1>,
+    extractorB: Extractor<T2>,
+    converter: (result: NonNullable<T1> | NonNullable<T2>) => R,
+): Extractor<R | null> {
+    return (input) => {
+        const extract = () => {
+            const a = extractorA(input);
+            if (a[0] !== null) return a;
+            return extractorB(input);
+        };
+
+        const extracted = extract();
+        if (extracted[0] === null) return [null, input];
+        return [converter(extracted[0]!), extracted[1]];
+    };
+}
+
+export function extractMultipleUntil<R, T>(
+    extractor: Extractor<T>,
+    terminator: string,
+    converter: (result: NonNullable<T>[]) => R,
+): Extractor<R | null> {
+    const terminatorExtractor = extractToken(terminator);
+    const wsExtractor = extractWhitespace();
+
+    return (input) => {
+        const extracted: NonNullable<T>[] = [];
+        let rest = input;
+
+        while (true) {
+            const [_ws, wsRest] = wsExtractor(rest);
+            rest = wsRest;
+
+            const term = terminatorExtractor(rest);
+            if (term[0] !== null) {
+                rest = term[1];
+                break;
+            }
+
+            const extr = extractor(rest);
+            if (extr[0] === null) return [null, input];
+
+            extracted.push(extr[0]!);
+            rest = extr[1];
+        }
+
+        return [converter(extracted), rest];
+    };
+}
+
 export function formatIdentifier(unformatted: string): string {
     const formatted = [];
     for (let i = 0; i < unformatted.length; i++) {
