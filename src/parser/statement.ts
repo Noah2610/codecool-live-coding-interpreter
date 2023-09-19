@@ -75,16 +75,16 @@ export function parseStatement(input: string): [Statement | null, string] {
     }
 
     if (!statement) {
-        var [variableDef, rest] = parseVariableDefinitionStatement(rest);
-        if (variableDef !== null) {
-            statement = variableDef;
+        var [funcDef, rest] = parseFunctionDefinitionStatement(rest);
+        if (funcDef !== null) {
+            statement = funcDef;
         }
     }
 
     if (!statement) {
-        var [funcDef, rest] = parseFunctionDefinitionStatement(rest);
-        if (funcDef !== null) {
-            statement = funcDef;
+        var [variableDef, rest] = parseVariableDefinitionStatement(rest);
+        if (variableDef !== null) {
+            statement = variableDef;
         }
     }
 

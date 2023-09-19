@@ -386,6 +386,7 @@ export function extractMultipleUntil<R, T>(
         let rest = input;
 
         while (true) {
+
             const [_ws, wsRest] = wsExtractor(rest);
             rest = wsRest;
 

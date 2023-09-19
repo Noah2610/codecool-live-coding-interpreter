@@ -13,7 +13,7 @@ export function parse(
         var [parsed, rest] = parseStatement(rest);
         if (parsed === null) {
             return Result.err(
-                new ParseError("Failed to parse statement", input, rest),
+                new ParseError("[parse] Failed to parse statement", input, rest),
             );
         }
         statements.push(parsed);

@@ -115,7 +115,7 @@ function runArithmeticOperationExpression(
             break;
         }
         default: {
-            throw new Error("unimplemented");
+            expectNever(expression.op);
         }
     }
 
