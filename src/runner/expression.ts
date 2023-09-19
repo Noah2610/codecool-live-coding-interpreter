@@ -1,7 +1,13 @@
 import { expectNever } from "ts-expect";
 import {
+    ArithmeticOperationExpression,
+    ComparisonOperationExpression,
     Expression,
     FunctionCallExpression,
+    isArithmeticOperationExpression,
+    isComparisonOperationExpression,
+    isLogicalOperationExpression,
+    LogicalOperationExpression,
     OperationExpression,
     PrimitiveExpression,
     VariableReferenceExpression,
@@ -35,13 +41,31 @@ export function runExpression(
     }
 }
 
-// TODO
-const OP_BUILTIN = new Map([
-
-]);
-
 function runOperationExpression(
     expression: OperationExpression,
+    context: Context,
+): PrimitiveExpression {
+    if (isArithmeticOperationExpression(expression)) {
+        return runArithmeticOperationExpression(expression, context);
+    }
+    if (isComparisonOperationExpression(expression)) {
+        return runComparisonOperationExpression(expression, context);
+    }
+    if (isLogicalOperationExpression(expression)) {
+        return runLogicalOperationExpression(expression, context);
+    }
+
+    throw new Error(
+        `[Unreachable] Unexpected operation: ${JSON.stringify(
+            expression,
+            null,
+            2,
+        )}`,
+    );
+}
+
+function runArithmeticOperationExpression(
+    expression: ArithmeticOperationExpression,
     context: Context,
 ): PrimitiveExpression {
     const left = runExpression(expression.lhs, context);
@@ -85,6 +109,20 @@ function runOperationExpression(
         type: "number",
         value: result,
     };
+}
+
+function runComparisonOperationExpression(
+    expression: ComparisonOperationExpression,
+    context: Context,
+): PrimitiveExpression {
+    throw new Error("Unimplemented");
+}
+
+function runLogicalOperationExpression(
+    expression: LogicalOperationExpression,
+    context: Context,
+): PrimitiveExpression {
+    throw new Error("Unimplemented");
 }
 
 function runVariableReferenceExpression(

@@ -15,15 +15,48 @@ export type BooleanExpression = { type: "boolean"; value: boolean };
 export type StringExpression = { type: "string"; value: string };
 export type NullExpression = { type: "null" };
 
-type ArithmeticOp = "+" | "-" | "*" | "/";
-type ComparisonOp = "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
-type LogicalOp = "and" | "or";
+const ARITHMETIC_OPS = ["+", "-", "*", "/"] as const;
+const COMPARISON_OPS = ["eq", "neq", "gt", "gte", "lt", "lte"] as const;
+const LOGICAL_OPS = ["and", "or"] as const;
+
+type ArithmeticOp = (typeof ARITHMETIC_OPS)[number];
+type ComparisonOp = (typeof COMPARISON_OPS)[number];
+type LogicalOp = (typeof LOGICAL_OPS)[number];
+
 export type OperationExpression = {
     type: "operation";
     op: ArithmeticOp | ComparisonOp | LogicalOp;
     lhs: Expression;
     rhs: Expression;
 };
+
+export type ArithmeticOperationExpression = OperationExpression & {
+    op: ArithmeticOp;
+};
+export type ComparisonOperationExpression = OperationExpression & {
+    op: ComparisonOp;
+};
+export type LogicalOperationExpression = OperationExpression & {
+    op: LogicalOp;
+};
+
+export function isArithmeticOperationExpression(
+    expr: OperationExpression,
+): expr is ArithmeticOperationExpression {
+    return (ARITHMETIC_OPS as readonly string[]).includes(expr.op as string);
+}
+
+export function isComparisonOperationExpression(
+    expr: OperationExpression,
+): expr is ComparisonOperationExpression {
+    return (COMPARISON_OPS as readonly string[]).includes(expr.op as string);
+}
+
+export function isLogicalOperationExpression(
+    expr: OperationExpression,
+): expr is LogicalOperationExpression {
+    return (LOGICAL_OPS as readonly string[]).includes(expr.op as string);
+}
 
 export type VariableReferenceExpression = {
     type: "variableReference";
