@@ -1,6 +1,6 @@
 import { expectNever } from "ts-expect";
-import { PrimitiveExpression } from "../parser/expression";
-import { Statement } from "../parser/statement";
+import { Expression, PrimitiveExpression } from "../parser/expression";
+import { ConditionStatement, Statement } from "../parser/statement";
 import { Context } from "./context";
 import { runExpression } from "./expression";
 
@@ -41,10 +41,61 @@ export function runStatement(
             return null;
         }
         case "condition": {
-            throw new Error("unimplemented condition");
+            return runConditionStatement(statement, context);
         }
         default: {
             expectNever(statement);
         }
     }
+}
+
+function runConditionStatement(
+    statement: ConditionStatement,
+    context: Context,
+): null | StatementReturn {
+    if (isTruthy(statement.if.condition, context)) {
+        for (const stmnt of statement.if.body) {
+            const result = runStatement(stmnt, context);
+            if (result && "isReturn" in result) {
+                return { isReturn: true, value: result.value };
+            }
+        }
+    } else if (statement.elseIfs) {
+        let didHitElseIf = false;
+
+        for (const elseIf of statement.elseIfs) {
+            if (isTruthy(elseIf.condition, context)) {
+                didHitElseIf = true;
+                for (const stmnt of elseIf.body) {
+                    const result = runStatement(stmnt, context);
+                    if (result && "isReturn" in result) {
+                        return { isReturn: true, value: result.value };
+                    }
+                }
+                break;
+            }
+        }
+
+        if (didHitElseIf === false && statement.else) {
+            for (const stmnt of statement.else) {
+                const result = runStatement(stmnt, context);
+                if (result && "isReturn" in result) {
+                    return { isReturn: true, value: result.value };
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
+function isTruthy(expression: Expression, context: Context): boolean {
+    const primitive = runExpression(expression, context);
+    if (primitive.type === "boolean") {
+        return primitive.value;
+    }
+    if (primitive.type === "null") {
+        return false;
+    }
+    return true;
 }
