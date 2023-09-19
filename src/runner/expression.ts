@@ -14,6 +14,7 @@ import {
 } from "../parser/expression";
 import { Context } from "./context";
 import { runStatement } from "./statement";
+import * as node from "../node";
 
 export function runExpression(
     expression: Expression,
@@ -64,22 +65,35 @@ function runOperationExpression(
     );
 }
 
+function expectOperandType<T extends PrimitiveExpression["type"]>(
+    expression: PrimitiveExpression,
+    operation: "arithmetic" | "comparison" | "logical",
+    expectedType: T,
+): PrimitiveExpression & { type: T } {
+    if (expression.type !== expectedType) {
+        throw new Error(
+            `Expected ${operation} operation to get operand of type ${expectedType}, but received type ${expression.type}`,
+        );
+    }
+    return expression as PrimitiveExpression & { type: T };
+}
+
 function runArithmeticOperationExpression(
     expression: ArithmeticOperationExpression,
     context: Context,
 ): PrimitiveExpression {
-    const left = runExpression(expression.lhs, context);
-    if (left.type !== "number") {
-        throw new Error(
-            "[Unimplemented runOperationExpression] Expected operation to get number for lhs and rhs",
-        );
-    }
-    const right = runExpression(expression.rhs, context);
-    if (right.type !== "number") {
-        throw new Error(
-            "[Unimplemented runOperationExpression] Expected operation to get number for lhs and rhs",
-        );
-    }
+    // const [left, right] = expectOperandsOfType(expression, "number", "number");
+
+    const left = expectOperandType(
+        runExpression(expression.lhs, context),
+        "arithmetic",
+        "number",
+    );
+    const right = expectOperandType(
+        runExpression(expression.rhs, context),
+        "arithmetic",
+        "number",
+    );
 
     let result: number;
 
@@ -115,14 +129,58 @@ function runComparisonOperationExpression(
     expression: ComparisonOperationExpression,
     context: Context,
 ): PrimitiveExpression {
-    throw new Error("Unimplemented");
+    const left = runExpression(expression.lhs, context);
+    const right = runExpression(expression.rhs, context);
+
+    switch (expression.op) {
+        case "eq": {
+            const l = left.type === "null" ? null : left.value;
+            const r = left.type === "null" ? null : left.value;
+            return node.bool(l === r);
+        }
+        case "neq": {
+            const l = left.type === "null" ? null : left.value;
+            const r = left.type === "null" ? null : left.value;
+            return node.bool(l !== r);
+        }
+        case "gt": {
+            const leftNum = expectOperandType(left, "comparison", "number");
+            const rightNum = expectOperandType(right, "comparison", "number");
+            return node.bool(leftNum.value > rightNum.value);
+        }
+        case "gte": {
+            const leftNum = expectOperandType(left, "comparison", "number");
+            const rightNum = expectOperandType(right, "comparison", "number");
+            return node.bool(leftNum.value >= rightNum.value);
+        }
+        case "lt": {
+            const leftNum = expectOperandType(left, "comparison", "number");
+            const rightNum = expectOperandType(right, "comparison", "number");
+            return node.bool(leftNum.value < rightNum.value);
+        }
+        case "lte": {
+            const leftNum = expectOperandType(left, "comparison", "number");
+            const rightNum = expectOperandType(right, "comparison", "number");
+            return node.bool(leftNum.value <= rightNum.value);
+        }
+    }
 }
 
 function runLogicalOperationExpression(
     expression: LogicalOperationExpression,
     context: Context,
 ): PrimitiveExpression {
-    throw new Error("Unimplemented");
+    const left = expectOperandType(runExpression(expression.lhs, context), "logical", "boolean");
+    const right = expectOperandType(runExpression(expression.rhs, context), "logical", "boolean");
+
+    switch (expression.op) {
+        case "and": {
+            return node.bool(left.value && right.value);
+        }
+        case "or": {
+            return node.bool(left.value || right.value);
+        }
+    }
 }
 
 function runVariableReferenceExpression(
