@@ -1,6 +1,7 @@
 import { runExpression } from "./expression";
 import { Expression } from "../parser/expression";
 import { Context } from "./context";
+import * as node from "../node";
 
 describe("runner", () => {
     let context: Context;
@@ -179,12 +180,171 @@ describe("runner", () => {
             ],
         });
 
-        const result = runExpression({
-            type: "functionCall",
-            identifier: "Gib Hallo",
-            parameters: [],
-        }, context);
+        const result = runExpression(
+            {
+                type: "functionCall",
+                identifier: "Gib Hallo",
+                parameters: [],
+            },
+            context,
+        );
 
         expect(result).toEqual({ type: "string", value: "Hallo Welt" });
+    });
+
+    it("runs equality comparison operation expression", () => {
+        expect(
+            runExpression(
+                node.operation("eq", node.num(1), node.num(1)),
+                context,
+            ),
+        ).toEqual(node.bool(true));
+        expect(
+            runExpression(
+                node.operation("eq", node.num(1), node.num(2)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
+    });
+
+    it("runs inequality comparison operation expression", () => {
+        expect(
+            runExpression(
+                node.operation("neq", node.num(1), node.num(1)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
+        expect(
+            runExpression(
+                node.operation("neq", node.num(1), node.num(2)),
+                context,
+            ),
+        ).toEqual(node.bool(true));
+    });
+
+    it("runs greater than comparison operation expression", () => {
+        expect(
+            runExpression(
+                node.operation("gt", node.num(2), node.num(1)),
+                context,
+            ),
+        ).toEqual(node.bool(true));
+        expect(
+            runExpression(
+                node.operation("gt", node.num(1), node.num(2)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
+        expect(
+            runExpression(
+                node.operation("gt", node.num(1), node.num(1)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
+    });
+
+    it("runs greater than or equals comparison operation expression", () => {
+        expect(
+            runExpression(
+                node.operation("gte", node.num(2), node.num(1)),
+                context,
+            ),
+        ).toEqual(node.bool(true));
+        expect(
+            runExpression(
+                node.operation("gte", node.num(1), node.num(2)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
+        expect(
+            runExpression(
+                node.operation("gte", node.num(1), node.num(1)),
+                context,
+            ),
+        ).toEqual(node.bool(true));
+    });
+
+    it("runs less than comparison operation expression", () => {
+        expect(
+            runExpression(
+                node.operation("lt", node.num(1), node.num(2)),
+                context,
+            ),
+        ).toEqual(node.bool(true));
+        expect(
+            runExpression(
+                node.operation("lt", node.num(2), node.num(1)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
+        expect(
+            runExpression(
+                node.operation("lt", node.num(1), node.num(1)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
+    });
+
+    it("runs less than or equals comparison operation expression", () => {
+        expect(
+            runExpression(
+                node.operation("lte", node.num(1), node.num(2)),
+                context,
+            ),
+        ).toEqual(node.bool(true));
+        expect(
+            runExpression(
+                node.operation("lte", node.num(2), node.num(1)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
+        expect(
+            runExpression(
+                node.operation("lte", node.num(1), node.num(1)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
+    });
+
+    it("runs logical and operation expression", () => {
+        expect(
+            runExpression(
+                node.operation("and", node.bool(true), node.bool(true)),
+                context,
+            ),
+        ).toEqual(node.bool(true));
+        expect(
+            runExpression(
+                node.operation("and", node.bool(true), node.bool(false)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
+        expect(
+            runExpression(
+                node.operation("and", node.bool(false), node.bool(false)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
+    });
+
+    it("runs logical or operation expression", () => {
+        expect(
+            runExpression(
+                node.operation("or", node.bool(true), node.bool(true)),
+                context,
+            ),
+        ).toEqual(node.bool(true));
+        expect(
+            runExpression(
+                node.operation("or", node.bool(true), node.bool(false)),
+                context,
+            ),
+        ).toEqual(node.bool(true));
+        expect(
+            runExpression(
+                node.operation("or", node.bool(false), node.bool(false)),
+                context,
+            ),
+        ).toEqual(node.bool(false));
     });
 });
