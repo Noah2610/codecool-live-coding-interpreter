@@ -100,7 +100,7 @@ export const printKeyword = (values: Expression[]): PrintStatement => ({
 
 export const condition = (
     ifCond: Conditional,
-    elseIfs: Conditional[],
+    elseIfs: Conditional[] | null,
     elseBody: Statement[] | null,
 ): ConditionStatement => ({
     type: "condition",
