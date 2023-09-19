@@ -217,8 +217,10 @@ function runFunctionCallExpression(
 
     // TODO set parameter variables for function call
 
+    const childContext = new Context(context);
+
     for (const statement of func.body) {
-        const result = runStatement(statement, context);
+        const result = runStatement(statement, childContext);
         if (result && "isReturn" in result) {
             return result.value;
         }
