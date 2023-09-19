@@ -170,8 +170,16 @@ function runLogicalOperationExpression(
     expression: LogicalOperationExpression,
     context: Context,
 ): PrimitiveExpression {
-    const left = expectOperandType(runExpression(expression.lhs, context), "logical", "boolean");
-    const right = expectOperandType(runExpression(expression.rhs, context), "logical", "boolean");
+    const left = expectOperandType(
+        runExpression(expression.lhs, context),
+        "logical",
+        "boolean",
+    );
+    const right = expectOperandType(
+        runExpression(expression.rhs, context),
+        "logical",
+        "boolean",
+    );
 
     switch (expression.op) {
         case "and": {
@@ -215,9 +223,13 @@ function runFunctionCallExpression(
         );
     }
 
-    // TODO set parameter variables for function call
-
     const childContext = new Context(context);
+
+    for (let i = 0; i < func.parameters.length; i++) {
+        const paramName = func.parameters[i]!;
+        const value = parameters[i]!;
+        childContext.setVariable(paramName, runExpression(value, context));
+    }
 
     for (const statement of func.body) {
         const result = runStatement(statement, childContext);
