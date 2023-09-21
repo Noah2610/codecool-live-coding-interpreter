@@ -1,4 +1,5 @@
 import {
+    extractEither,
     extractEnclosed,
     extractIdentifierUntil,
     extractList,
@@ -425,41 +426,36 @@ function parseVariableReferenceExpression(
 function parseFunctionCallExpression(
     input: string,
 ): [FunctionCallExpression | null, string] {
-    // TODO: proper error handling
-
-    var [token, rest] = extractToken("führe")(input);
-    if (token === null) return [null, input];
-
-    const parameters: Expression[] = [];
-
-    var [identifier, rest] = extractIdentifierUntil(" mit ")(rest);
-
-    if (identifier === null) {
-        var [identifier, rest] = extractIdentifierUntil(" aus")(rest);
-        if (identifier === null) {
-            throw new Error(
-                "Failed to parse functionCall: expected identifier",
-            );
-        }
-    } else {
-        var [params, rest] = extractList(" aus")(rest);
-        if (params === null) {
-            throw new Error(
-                "Failed to parse functionCall: expected parameters",
-            );
-        }
-
-        for (const param of params) {
-            const [expr, exprRest] = parseExpression(param); // TODO: layer?
-            if (expr === null || exprRest.trim().length > 0) {
-                throw new Error(
-                    `Failed to parse functionCall parameter as expression: "${param}"`,
-                );
-            }
-
-            parameters.push(expr);
-        }
-    }
-
-    return [node.functionCall(identifier, parameters), rest];
+    return extractSequence(
+        [
+            extractToken("führe"),
+            extractWhitespace1(),
+            extractEither(
+                // WITH PARAMETERS
+                extractSequence(
+                    [
+                        extractIdentifierUntil(" mit"),
+                        extractWhitespace1(),
+                        extractList(" aus", (s) =>
+                            parseExpression(s, nextLayerIndex("functionCall")),
+                        ),
+                    ] as const,
+                    ([identifier, _1, parameters]) => ({
+                        identifier,
+                        parameters,
+                    }),
+                ),
+                extractIdentifierUntil(" aus"),
+                (x) =>
+                    typeof x === "string"
+                        ? { identifier: x, parameters: [] }
+                        : x,
+            ),
+        ] as const,
+        ([_1, _2, { identifier, parameters }]): FunctionCallExpression => ({
+            type: "functionCall",
+            identifier,
+            parameters,
+        }),
+    )(input);
 }

@@ -155,20 +155,27 @@ export function extractNumber(): Extractor<number | null> {
     };
 }
 
-export function extractUntil(
+export function extractUntil<T = string>(
     terminator: string,
-    exclude?: string[],
-): Extractor<string | null> {
+    // { exclude, extractor }: { exclude?: string[], extractor?: Extractor<T> },
+    excludeOrExtractor?: string[] | Extractor<T>,
+): Extractor<T | null> {
+    const [exclude, extractor] = Array.isArray(excludeOrExtractor)
+        ? [excludeOrExtractor, null]
+        : [null, excludeOrExtractor ?? null];
+
     const wsExtractor = extractWhitespace();
-    const untilExtractor = extractWhile1((_chr, i, input) => {
-        if (
-            exclude &&
-            exclude.some((ex) => input.slice(i, i + ex.length) === ex)
-        ) {
-            return false;
-        }
-        return input.slice(i, i + terminator.length) !== terminator;
-    });
+    const untilExtractor =
+        extractor ||
+        extractWhile1((_chr, i, input) => {
+            if (
+                exclude &&
+                exclude.some((ex) => input.slice(i, i + ex.length) === ex)
+            ) {
+                return false;
+            }
+            return input.slice(i, i + terminator.length) !== terminator;
+        });
     const terminatorExtractor = extractToken(terminator);
 
     return (input) => {
@@ -179,7 +186,7 @@ export function extractUntil(
         var [extractedTerminator, rest] = terminatorExtractor(rest);
         if (extractedTerminator === null) return [null, input];
 
-        return [extracted, rest];
+        return [extracted as T, rest]; // TODO: I don't understand why we can't return type `string | T` here...
     };
 }
 
@@ -237,12 +244,13 @@ export function extractEnclosed(boundary: string): Extractor<string | null> {
     };
 }
 
-export function extractDelimitedList(
+export function extractDelimitedList<T = string>(
     delimiter: string,
     terminator: string,
-): Extractor<string[] | null> {
-    const untilDelimiterExtractor = extractUntil(delimiter);
-    const untilTerminatorExtractor = extractUntil(terminator);
+    excludeOrExtractor?: string[] | Extractor<T>,
+): Extractor<NonNullable<T>[] | null> {
+    const untilDelimiterExtractor = extractUntil(delimiter, excludeOrExtractor);
+    const untilTerminatorExtractor = extractUntil(terminator, excludeOrExtractor);
 
     return (input) => {
         const result = [];
@@ -262,7 +270,7 @@ export function extractDelimitedList(
             result.push(extracted);
         }
 
-        return [result, rest];
+        return [result as NonNullable<T>[], rest]; // TODO
     };
 }
 
@@ -272,16 +280,30 @@ export function extractDelimitedList(
  * "eins und zwei"
  * "eins, zwei und drei"
  */
-export function extractList(terminator: string): Extractor<string[] | null> {
-    const delimitedListExtractor = extractDelimitedList(",", " und ");
-    const untilTerminatorExtractor = extractUntil(terminator, [","]);
-    const untilTerminatorExtractorExcludeUnd = extractUntil(terminator, [
-        ",",
-        " und",
-    ]);
-    const untilUndExtractor = extractUntil(" und ", [","]);
+export function extractList<T = string>(
+    terminator: string,
+    excludeOrExtractor?: string[] | Extractor<T>,
+): Extractor<NonNullable<T>[] | null> {
+    const [exclude, extractor] = Array.isArray(excludeOrExtractor)
+        ? [excludeOrExtractor, null]
+        : [[], excludeOrExtractor ?? null];
 
-    function extractListMultiple(): Extractor<string[] | null> {
+    const delimitedListExtractor = extractDelimitedList(
+        ",",
+        " und ",
+        excludeOrExtractor,
+    );
+    const untilTerminatorExtractor = extractUntil(
+        terminator,
+        extractor ?? [",", ...exclude],
+    );
+    const untilTerminatorExtractorExcludeUnd = extractUntil(
+        terminator,
+        extractor ?? [",", " und", ...exclude],
+    );
+    const untilUndExtractor = extractUntil(" und ", extractor ?? [",", ...exclude]);
+
+    function extractListMultiple(): Extractor<NonNullable<T>[] | null> {
         return (input) => {
             var [items, rest] = delimitedListExtractor(input);
             if (items === null || items.length < 2) {
@@ -291,11 +313,11 @@ export function extractList(terminator: string): Extractor<string[] | null> {
             var [lastItem, rest] = untilTerminatorExtractor(rest);
             if (lastItem === null) return [null, input];
 
-            return [[...items, lastItem], rest];
+            return [[...items, lastItem] as NonNullable<T>[], rest]; // TODO
         };
     }
 
-    function extractListTwo(): Extractor<string[] | null> {
+    function extractListTwo(): Extractor<NonNullable<T>[] | null> {
         return (input) => {
             var [first, rest] = untilUndExtractor(input);
             if (first === null) return [null, input];
@@ -303,15 +325,15 @@ export function extractList(terminator: string): Extractor<string[] | null> {
             var [second, rest] = untilTerminatorExtractorExcludeUnd(rest);
             if (second === null) return [null, input];
 
-            return [[first, second], rest];
+            return [[first, second] as NonNullable<T>[], rest]; // TODO
         };
     }
 
-    function extractListOne(): Extractor<string[] | null> {
+    function extractListOne(): Extractor<NonNullable<T>[] | null> {
         return (input) => {
             var [item, rest] = untilTerminatorExtractorExcludeUnd(input);
             if (item === null) return [null, input];
-            return [[item], rest];
+            return [[item] as NonNullable<T>[], rest]; // TODO
         };
     }
 
@@ -386,7 +408,6 @@ export function extractMultipleUntil<R, T>(
         let rest = input;
 
         while (true) {
-
             const [_ws, wsRest] = wsExtractor(rest);
             rest = wsRest;
 
