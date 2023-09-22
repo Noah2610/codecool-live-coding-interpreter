@@ -1,5 +1,5 @@
-import { PrimitiveExpression } from "../parser/expression";
-import { FunctionDefinitionStatement } from "../parser/statement";
+import { PrimitiveExpression } from "../../parser/expression";
+import { FunctionDefinitionStatement } from "../../parser/statement";
 
 type FunctionDefinition = FunctionDefinitionStatement & { context: Context };
 

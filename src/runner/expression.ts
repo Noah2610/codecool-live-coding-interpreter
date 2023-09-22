@@ -38,6 +38,9 @@ export function runExpression(
         case "functionCall": {
             return runFunctionCallExpression(expression, context);
         }
+        case "builtin": {
+            return expression.func();
+        }
         default: {
             expectNever(expression);
         }

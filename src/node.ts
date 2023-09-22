@@ -1,10 +1,12 @@
 import {
     BooleanExpression,
+    BuiltinExpression,
     Expression,
     FunctionCallExpression,
     NullExpression,
     NumberExpression,
     OperationExpression,
+    PrimitiveExpression,
     StringExpression,
     VariableReferenceExpression,
 } from "./parser/expression";
@@ -116,3 +118,7 @@ export const conditional = (
     condition,
     body,
 });
+
+export const builtin = (
+    func: () => PrimitiveExpression,
+): BuiltinExpression => ({ type: "builtin", func });

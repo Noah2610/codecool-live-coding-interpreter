@@ -82,6 +82,12 @@ export type FunctionCallExpression = {
     parameters: Expression[];
 };
 
+// NOTE: This expression isn't parsed, only created in StandardContext
+export type BuiltinExpression = {
+    type: "builtin";
+    func: () => PrimitiveExpression;
+};
+
 export type PrimitiveExpression =
     | NumberExpression
     | BooleanExpression
@@ -92,7 +98,8 @@ export type Expression =
     | PrimitiveExpression
     | OperationExpression
     | VariableReferenceExpression
-    | FunctionCallExpression;
+    | FunctionCallExpression
+    | BuiltinExpression;
 
 export function parseExpression(
     input: string,
