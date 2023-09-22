@@ -152,7 +152,7 @@ function getLayerIndex(
     return EXPRESSION_PARSE_LAYER_NAMES.indexOf(layerName);
 }
 
-function nextLayerIndex(
+export function nextLayerIndex(
     layerName: (typeof EXPRESSION_PARSE_LAYER_NAMES)[number],
 ): number {
     return EXPRESSION_PARSE_LAYER_NAMES.indexOf(layerName) + 1;

@@ -1,8 +1,14 @@
 import { expectNever } from "ts-expect";
 import { Expression, PrimitiveExpression } from "../parser/expression";
-import { ConditionStatement, Statement } from "../parser/statement";
+import {
+    Conditional,
+    ConditionStatement,
+    Statement,
+} from "../parser/statement";
 import { Context } from "./context";
 import { runExpression } from "./expression";
+
+type StatementResult = PrimitiveExpression | StatementReturn | null;
 
 type StatementReturn = {
     isReturn: true;
@@ -12,7 +18,7 @@ type StatementReturn = {
 export function runStatement(
     statement: Statement,
     context: Context,
-): PrimitiveExpression | StatementReturn | null {
+): StatementResult {
     switch (statement.type) {
         case "expression": {
             return runExpression(statement.value, context);
@@ -49,41 +55,32 @@ export function runStatement(
     }
 }
 
+function runBody(body: Statement[], context: Context): StatementResult {
+    for (const stmnt of body) {
+        const result = runStatement(stmnt, context);
+        if (result && "isReturn" in result) {
+            return { isReturn: true, value: result.value };
+        }
+    }
+    return null;
+}
+
 function runConditionStatement(
     statement: ConditionStatement,
     context: Context,
-): null | StatementReturn {
+): StatementResult {
+    let elseIf: Conditional | undefined = undefined;
+
     if (isTruthy(statement.if.condition, context)) {
-        for (const stmnt of statement.if.body) {
-            const result = runStatement(stmnt, context);
-            if (result && "isReturn" in result) {
-                return { isReturn: true, value: result.value };
-            }
-        }
-    } else if (statement.elseIfs) {
-        let didHitElseIf = false;
-
-        for (const elseIf of statement.elseIfs) {
-            if (isTruthy(elseIf.condition, context)) {
-                didHitElseIf = true;
-                for (const stmnt of elseIf.body) {
-                    const result = runStatement(stmnt, context);
-                    if (result && "isReturn" in result) {
-                        return { isReturn: true, value: result.value };
-                    }
-                }
-                break;
-            }
-        }
-
-        if (didHitElseIf === false && statement.else) {
-            for (const stmnt of statement.else) {
-                const result = runStatement(stmnt, context);
-                if (result && "isReturn" in result) {
-                    return { isReturn: true, value: result.value };
-                }
-            }
-        }
+        return runBody(statement.if.body, context);
+    } else if (
+        (elseIf = statement.elseIfs?.find((elseIf) =>
+            isTruthy(elseIf.condition, context),
+        ))
+    ) {
+        return runBody(elseIf.body, context);
+    } else if (statement.else) {
+        return runBody(statement.else, context);
     }
 
     return null;

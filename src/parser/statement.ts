@@ -1,4 +1,4 @@
-import { Expression, parseExpression } from "./expression";
+import { Expression, nextLayerIndex, parseExpression } from "./expression";
 import {
     extractOneOfToken,
     extractToken,
@@ -186,19 +186,11 @@ function parsePrintStatement(input: string): [PrintStatement | null, string] {
         [
             extractToken("zeig"),
             extractWhitespace1(),
-            extractList(" an"),
+            extractList(" an", (s) =>
+                parseExpression(s, nextLayerIndex("logical")),
+            ),
         ] as const,
-        ([_1, _2, values]) => {
-            const expressions: Expression[] = [];
-            for (const value of values) {
-                const [expr, rest] = parseExpression(value);
-                if (expr === null || rest.trim().length > 0) {
-                    return null;
-                }
-                expressions.push(expr);
-            }
-            return node.printKeyword(expressions);
-        },
+        ([_1, _2, expressions]) => node.printKeyword(expressions),
     )(input);
 }
 
