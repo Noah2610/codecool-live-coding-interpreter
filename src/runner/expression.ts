@@ -135,12 +135,12 @@ function runComparisonOperationExpression(
     switch (expression.op) {
         case "eq": {
             const l = left.type === "null" ? null : left.value;
-            const r = left.type === "null" ? null : left.value;
+            const r = right.type === "null" ? null : right.value;
             return node.bool(l === r);
         }
         case "neq": {
             const l = left.type === "null" ? null : left.value;
-            const r = left.type === "null" ? null : left.value;
+            const r = right.type === "null" ? null : right.value;
             return node.bool(l !== r);
         }
         case "gt": {

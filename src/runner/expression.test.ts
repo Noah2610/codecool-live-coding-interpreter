@@ -303,7 +303,7 @@ describe("runner", () => {
                 node.operation("lte", node.num(1), node.num(1)),
                 context,
             ),
-        ).toEqual(node.bool(false));
+        ).toEqual(node.bool(true));
     });
 
     it("runs logical and operation expression", () => {
