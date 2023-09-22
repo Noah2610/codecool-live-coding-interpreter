@@ -43,6 +43,9 @@ export type ComparisonOperationExpression = OperationExpression & {
 export type LogicalOperationExpression = OperationExpression & {
     op: LogicalOp;
 };
+export type StringOperationExpression = OperationExpression & {
+    op: StringOp;
+};
 
 export function isArithmeticOperationExpression(
     expr: OperationExpression,
@@ -60,6 +63,12 @@ export function isLogicalOperationExpression(
     expr: OperationExpression,
 ): expr is LogicalOperationExpression {
     return (LOGICAL_OPS as readonly string[]).includes(expr.op as string);
+}
+
+export function isStringOperationExpression(
+    expr: OperationExpression,
+): expr is StringOperationExpression {
+    return (STRING_OPS as readonly string[]).includes(expr.op as string);
 }
 
 export type VariableReferenceExpression = {

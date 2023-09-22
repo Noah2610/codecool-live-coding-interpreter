@@ -3,7 +3,7 @@ import { Expression } from "../parser/expression";
 import { Context } from "./context";
 import * as node from "../node";
 
-describe("runner", () => {
+describe("run expressions", () => {
     let context: Context;
 
     beforeEach(() => {
@@ -346,5 +346,59 @@ describe("runner", () => {
                 context,
             ),
         ).toEqual(node.bool(false));
+    });
+
+    it("runs concat string operation expression", () => {
+        const result = runExpression(
+            node.operation("concat", node.str("Hallo"), node.str(" Welt")),
+            context,
+        );
+        expect(result).toEqual(node.str("Hallo Welt"));
+    });
+
+    it("runs concat string operation expression with number operands", () => {
+        expect(
+            runExpression(
+                node.operation("concat", node.num(12), node.num(34)),
+                context,
+            ),
+        ).toEqual(node.str("1234"));
+        expect(
+            runExpression(
+                node.operation("concat", node.str("Number: "), node.num(123)),
+                context,
+            ),
+        ).toEqual(node.str("Number: 123"));
+        expect(
+            runExpression(
+                node.operation(
+                    "concat",
+                    node.num(321),
+                    node.str(" is a number"),
+                ),
+                context,
+            ),
+        ).toEqual(node.str("321 is a number"));
+    });
+
+    it("doesn't run concat string operation expression with non-string and non-number operands", () => {
+        expect(() =>
+            runExpression(
+                node.operation("concat", node.bool(true), node.bool(false)),
+                context,
+            ),
+        ).toThrowError();
+        expect(() =>
+            runExpression(
+                node.operation("concat", node.str("Hello"), node.nullExp()),
+                context,
+            ),
+        ).toThrowError();
+        expect(() =>
+            runExpression(
+                node.operation("concat", node.nullExp(), node.str("Hello")),
+                context,
+            ),
+        ).toThrowError();
     });
 });

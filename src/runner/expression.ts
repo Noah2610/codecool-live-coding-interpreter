@@ -7,9 +7,11 @@ import {
     isArithmeticOperationExpression,
     isComparisonOperationExpression,
     isLogicalOperationExpression,
+    isStringOperationExpression,
     LogicalOperationExpression,
     OperationExpression,
     PrimitiveExpression,
+    StringOperationExpression,
     VariableReferenceExpression,
 } from "../parser/expression";
 import { Context } from "./context";
@@ -55,6 +57,9 @@ function runOperationExpression(
     if (isLogicalOperationExpression(expression)) {
         return runLogicalOperationExpression(expression, context);
     }
+    if (isStringOperationExpression(expression)) {
+        return runStringOperationExpression(expression, context);
+    }
 
     throw new Error(
         `[Unreachable] Unexpected operation: ${JSON.stringify(
@@ -65,12 +70,19 @@ function runOperationExpression(
     );
 }
 
+function isOperandType<T extends PrimitiveExpression["type"]>(
+    expression: PrimitiveExpression,
+    expectedType: T,
+): expression is PrimitiveExpression & { type: T } {
+    return expression.type === expectedType;
+}
+
 function expectOperandType<T extends PrimitiveExpression["type"]>(
     expression: PrimitiveExpression,
     operation: "arithmetic" | "comparison" | "logical",
     expectedType: T,
 ): PrimitiveExpression & { type: T } {
-    if (expression.type !== expectedType) {
+    if (!isOperandType(expression, expectedType)) {
         throw new Error(
             `Expected ${operation} operation to get operand of type ${expectedType}, but received type ${expression.type}`,
         );
@@ -189,6 +201,30 @@ function runLogicalOperationExpression(
             return node.bool(left.value || right.value);
         }
     }
+}
+
+function runStringOperationExpression(
+    expression: StringOperationExpression,
+    context: Context,
+): PrimitiveExpression {
+    const leftPrim = runExpression(expression.lhs, context);
+    const rightPrim = runExpression(expression.rhs, context);
+    const left =
+        isOperandType(leftPrim, "string") || isOperandType(leftPrim, "number")
+            ? leftPrim
+            : null;
+    const right =
+        isOperandType(rightPrim, "string") || isOperandType(rightPrim, "number")
+            ? rightPrim
+            : null;
+
+    if (left === null || right === null) {
+        throw new Error(
+            `Expected string concatenation operation to get operands of type string or number, but received types ${leftPrim.type} and ${rightPrim.type}`,
+        );
+    }
+
+    return node.str(left.value.toString() + right.value.toString());
 }
 
 function runVariableReferenceExpression(
