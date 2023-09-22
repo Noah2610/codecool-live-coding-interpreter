@@ -1,3 +1,5 @@
+import { OperationExpression } from "./expression";
+
 type Extractor<T> = (input: string) => [T, string];
 type Extractors = Readonly<Array<Extractor<any>>>;
 type ExtractorReturnTypes<T extends Readonly<Array<(...args: any) => any>>> = {
@@ -98,28 +100,26 @@ export function extractWhitespace1(): Extractor<string | null> {
     return extractWhile1((chr) => chr.trim().length === 0);
 }
 
-export function extractOperator(): Extractor<"+" | "-" | "*" | "/" | null> {
+export function extractOperator(): Extractor<OperationExpression["op"] | null> {
     const plusExtractor = extractTokens(["die", "Summe", "von"]);
     const minusExtractor = extractTokens(["die", "Differenz", "von"]);
     const multExtractor = extractTokens(["das", "Produkt", "aus"]);
     const divExtractor = extractTokens(["der", "Quotient", "von"]);
+    const concatExtractor = extractTokens(["die", "Verknüpfung", "zwischen"]);
+    const extractors = [
+        ["+", plusExtractor],
+        ["-", minusExtractor],
+        ["*", multExtractor],
+        ["/", divExtractor],
+        ["concat", concatExtractor],
+    ] as const;
 
     return (input) => {
-        var [plus, rest] = plusExtractor(input);
-        if (plus !== null) {
-            return ["+", rest];
-        }
-        var [minus, rest] = minusExtractor(input);
-        if (minus !== null) {
-            return ["-", rest];
-        }
-        var [mult, rest] = multExtractor(input);
-        if (mult !== null) {
-            return ["*", rest];
-        }
-        var [div, rest] = divExtractor(input);
-        if (div !== null) {
-            return ["/", rest];
+        for (const [op, extractor] of extractors) {
+            const [extracted, rest] = extractor(input);
+            if (extracted !== null) {
+                return [op, rest];
+            }
         }
         return [null, input];
     };
@@ -253,8 +253,14 @@ export function extractDelimitedList<T = string>(
         ? [excludeOrExtractor, null]
         : [[], excludeOrExtractor ?? null];
 
-    const untilDelimiterExtractor = extractUntil(delimiter, extractor ?? [terminator, ...exclude]);
-    const untilTerminatorExtractor = extractUntil(terminator, excludeOrExtractor);
+    const untilDelimiterExtractor = extractUntil(
+        delimiter,
+        extractor ?? [terminator, ...exclude],
+    );
+    const untilTerminatorExtractor = extractUntil(
+        terminator,
+        excludeOrExtractor,
+    );
 
     return (input) => {
         const result = [];
@@ -305,7 +311,10 @@ export function extractList<T = string>(
         terminator,
         extractor ?? [",", " und", ...exclude],
     );
-    const untilUndExtractor = extractUntil(" und ", extractor ?? [",", ...exclude]);
+    const untilUndExtractor = extractUntil(
+        " und ",
+        extractor ?? [",", ...exclude],
+    );
 
     function extractListMultiple(): Extractor<NonNullable<T>[] | null> {
         return (input) => {

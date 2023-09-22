@@ -10,6 +10,7 @@ import {
     extractWhitespace1,
 } from "./extractors";
 import * as node from "../node";
+import { expectType } from "ts-expect";
 
 export type NumberExpression = { type: "number"; value: number };
 export type BooleanExpression = { type: "boolean"; value: boolean };
@@ -19,14 +20,16 @@ export type NullExpression = { type: "null" };
 const ARITHMETIC_OPS = ["+", "-", "*", "/"] as const;
 const COMPARISON_OPS = ["eq", "neq", "gt", "gte", "lt", "lte"] as const;
 const LOGICAL_OPS = ["and", "or"] as const;
+const STRING_OPS = ["concat"] as const;
 
 type ArithmeticOp = (typeof ARITHMETIC_OPS)[number];
 type ComparisonOp = (typeof COMPARISON_OPS)[number];
 type LogicalOp = (typeof LOGICAL_OPS)[number];
+type StringOp = (typeof STRING_OPS)[number];
 
 export type OperationExpression = {
     type: "operation";
-    op: ArithmeticOp | ComparisonOp | LogicalOp;
+    op: ArithmeticOp | ComparisonOp | LogicalOp | StringOp;
     lhs: Expression;
     rhs: Expression;
 };
@@ -123,9 +126,10 @@ export function parseExpression(
 }
 
 const EXPRESSION_PARSE_LAYERS = [
-    parseLogicalExpression,
-    parseComparisonExpression,
-    parseArithmeticExpression,
+    parseLogicalOperationExpression,
+    parseComparisonOperationExpression,
+    parseArithmeticOperationExpression,
+    parseStringOperationExpression,
     parseFunctionCallExpression,
     parseVariableReferenceExpression,
     parseStringExpression,
@@ -138,6 +142,7 @@ const EXPRESSION_PARSE_LAYER_NAMES = [
     "logical",
     "comparison",
     "arithmetic",
+    "stringOperation",
     "functionCall",
     "variableReference",
     "string",
@@ -145,6 +150,10 @@ const EXPRESSION_PARSE_LAYER_NAMES = [
     "boolean",
     "null",
 ] as const;
+
+expectType<(typeof EXPRESSION_PARSE_LAYERS)["length"]>(
+    EXPRESSION_PARSE_LAYER_NAMES.length,
+);
 
 function getLayerIndex(
     layerName: (typeof EXPRESSION_PARSE_LAYER_NAMES)[number],
@@ -201,8 +210,7 @@ function parseNullExpression(input: string): [NullExpression | null, string] {
     return [node.nullExp(), rest];
 }
 
-// TODO
-function parseArithmeticExpression(
+function parseArithmeticOperationExpression(
     input: string,
 ): [OperationExpression | null, string] {
     // die Summe von 1 und 2
@@ -220,7 +228,7 @@ function parseArithmeticExpression(
     )(input);
 }
 
-function parseComparisonExpression(
+function parseComparisonOperationExpression(
     input: string,
 ): [OperationExpression | null, string] {
     const parseEqualityComparison = extractSequence(
@@ -352,7 +360,7 @@ function parseComparisonExpression(
     return [null, input];
 }
 
-function parseLogicalExpression(
+function parseLogicalOperationExpression(
     input: string,
 ): [OperationExpression | null, string] {
     const parseAnd = extractSequence(
@@ -392,6 +400,22 @@ function parseLogicalExpression(
     }
 
     return [null, input];
+}
+
+function parseStringOperationExpression(
+    input: string,
+): [OperationExpression | null, string] {
+    return extractSequence(
+        [
+            extractOperator(),
+            (s) => parseExpression(s, nextLayerIndex("stringOperation")),
+            extractWhitespace1(),
+            extractToken("und"),
+            extractWhitespace1(),
+            parseExpression,
+        ] as const,
+        ([op, lhs, _1, _2, _3, rhs]) => node.operation(op, lhs, rhs),
+    )(input);
 }
 
 function parseVariableReferenceExpression(

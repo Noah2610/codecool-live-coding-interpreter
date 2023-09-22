@@ -1,3 +1,4 @@
+import * as node from "../node";
 import { NumberExpression, parseExpression } from "./expression";
 
 describe("parse expressions", () => {
@@ -289,6 +290,16 @@ describe("parse expressions", () => {
                 lhs: { type: "boolean", value: true },
                 rhs: { type: "boolean", value: false },
             },
+            "",
+        ]);
+    });
+
+    it("parses concat string operation expression", () => {
+        const parsed = parseExpression(
+            'die Verknüpfung zwischen "Hallo" und " Welt"',
+        );
+        expect(parsed).toEqual([
+            node.operation("concat", node.str("Hallo"), node.str(" Welt")),
             "",
         ]);
     });
