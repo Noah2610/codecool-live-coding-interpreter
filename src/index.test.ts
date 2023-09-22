@@ -20,7 +20,7 @@ describe("scripts", () => {
 
                 das Mindestalter für Bier ist 16!
                 das Mindestalter für Radler ist 15!
-                das Mindestalter für Cola ist 16!
+                das Mindestalter für Cola ist 8!
 
                 stimmt, dass /Alter/ größer als oder gleich /Mindestalter für Bier/ ist?
                     gib /Bier/ zurück!
@@ -44,9 +44,9 @@ describe("scripts", () => {
         `);
 
         expect(result.isOk()).toBe(true);
-        expect(console.log).toHaveBeenNthCalledWith(0, "Bier");
-        expect(console.log).toHaveBeenNthCalledWith(1, "Radler");
-        expect(console.log).toHaveBeenNthCalledWith(2, "Cola");
+        expect(console.log).toHaveBeenNthCalledWith(1, "ein alkoholisches Getränk");
+        expect(console.log).toHaveBeenNthCalledWith(2, "ein weniger alkoholisches Getränk");
+        expect(console.log).toHaveBeenNthCalledWith(3, "ein Soft-Drink");
     });
 
     it("fibonacci", () => {
@@ -76,15 +76,15 @@ describe("scripts", () => {
             zeig führe Fibonacci mit 20 aus an!
         `);
 
-        expect(result.isOk()).toBe(true);
-        expect(console.log).toHaveBeenNthCalledWith(0, 1);
+        expect(result.isOk(), result.getError()?.display()).toBe(true);
         expect(console.log).toHaveBeenNthCalledWith(1, 1);
-        expect(console.log).toHaveBeenNthCalledWith(2, 2);
-        expect(console.log).toHaveBeenNthCalledWith(3, 3);
-        expect(console.log).toHaveBeenNthCalledWith(4, 5);
-        expect(console.log).toHaveBeenNthCalledWith(5, 8);
-        expect(console.log).toHaveBeenNthCalledWith(6, 55);
-        expect(console.log).toHaveBeenNthCalledWith(7, 6765);
+        expect(console.log).toHaveBeenNthCalledWith(2, 1);
+        expect(console.log).toHaveBeenNthCalledWith(3, 2);
+        expect(console.log).toHaveBeenNthCalledWith(4, 3);
+        expect(console.log).toHaveBeenNthCalledWith(5, 5);
+        expect(console.log).toHaveBeenNthCalledWith(6, 8);
+        expect(console.log).toHaveBeenNthCalledWith(7, 55);
+        expect(console.log).toHaveBeenNthCalledWith(8, 6765);
     });
 
     it("prime", () => {});
