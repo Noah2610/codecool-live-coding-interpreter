@@ -161,29 +161,14 @@ function nextLayerIndex(
 function parseNumberExpression(
     input: string,
 ): [NumberExpression | null, string] {
-    const numExtractor = extractNumber();
-    const commaExtractor = extractToken(",");
-
-    var [num, rest] = numExtractor(input);
-    if (num === null) {
-        return [null, input];
-    }
-
-    var [delimiter, rest] = commaExtractor(rest);
-    if (delimiter !== null) {
-        var [decimalNum, rest] = numExtractor(rest);
-        if (decimalNum === null) {
-            return [null, input];
-        }
-
-        const floatNum =
-            decimalNum / 10 ** (Math.floor(Math.log10(decimalNum)) + 1);
-        const finalNum = num + floatNum;
-
-        return [node.num(finalNum), rest];
-    }
-
-    return [node.num(num), rest];
+    return extractEither(
+        extractSequence(
+            [extractNumber(), extractToken(","), extractNumber()] as const,
+            ([d, _, f]) => d + f / 10 ** (Math.floor(Math.log10(f)) + 1),
+        ),
+        extractNumber(),
+        node.num,
+    )(input);
 }
 
 function parseBooleanExpression(

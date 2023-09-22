@@ -166,7 +166,7 @@ export function extractUntil<T = string>(
 
     const wsExtractor = extractWhitespace();
     const untilExtractor =
-        extractor ||
+        extractor ??
         extractWhile1((_chr, i, input) => {
             if (
                 exclude &&
@@ -249,7 +249,11 @@ export function extractDelimitedList<T = string>(
     terminator: string,
     excludeOrExtractor?: string[] | Extractor<T>,
 ): Extractor<NonNullable<T>[] | null> {
-    const untilDelimiterExtractor = extractUntil(delimiter, excludeOrExtractor);
+    const [exclude, extractor] = Array.isArray(excludeOrExtractor)
+        ? [excludeOrExtractor, null]
+        : [[], excludeOrExtractor ?? null];
+
+    const untilDelimiterExtractor = extractUntil(delimiter, extractor ?? [terminator, ...exclude]);
     const untilTerminatorExtractor = extractUntil(terminator, excludeOrExtractor);
 
     return (input) => {
